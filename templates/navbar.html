@@ -1,0 +1,41 @@
+<!-- templates/navbar.html -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm" aria-label="Main Navigation">
+  <div class="container-fluid">
+    <!-- Brand/Logo -->
+    <a class="navbar-brand fw-bold" href="{{ relative_path_to_root }}/index.html">
+      <i class="bi bi-code-slash"></i> Study Plan
+    </a>
+    <!-- Toggler for mobile view -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" 
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar Links and Content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <!-- Left-aligned navbar items -->
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <!-- Home link -->
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'home' %}active{% endif %}" aria-current="page" href="{{ relative_path_to_root }}/index.html">Home</a>
+        </li>
+        <!-- Weeks Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if active_page == 'weeks' %}active{% endif %}" href="#" id="weeksDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Weeks
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="weeksDropdown">
+            {% for week in weeks %}
+              <li><a class="dropdown-item" href="{{ relative_path_to_root }}/{{ week }}/index.html">{{ week }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+        <!-- Additional nav links can be added here -->
+      </ul>
+      <!-- Right-aligned navbar items -->
+      <!-- Dark Mode Toggle -->
+      <button class="btn btn-outline-light ms-3" id="themeToggle" aria-label="Toggle Dark Mode">
+        <i class="bi bi-moon-fill"></i>
+      </button>
+    </div>
+  </div>
+</nav>

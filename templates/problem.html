@@ -1,0 +1,180 @@
+<!-- templates/problem.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ problem_name }} - {{ day }}, {{ week }} | Study Plan</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Detailed solution and explanation for {{ problem_name }}.">
+  <meta name="keywords" content="LeetCode, {{ problem_name }}, Solution, {{ week }}, {{ day }}">
+  <meta name="author" content="Ashish Bisht">
+  <!-- Viewport Meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Favicon -->
+  <link rel="icon" href="{{ relative_path_to_root }}/static/favicon.ico" type="image/x-icon">
+  <!-- Google Fonts: Roboto & Merriweather -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Merriweather:wght@400;700&display=swap">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <!-- Highlight.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <!-- AOS Library for Animations -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ relative_path_to_root }}/static/styles.css">
+  <!-- Syntax Highlighting Custom Styles -->
+  <style>
+      {{ code_style }}
+  </style>
+</head>
+<body>
+  <header>
+    {% include 'navbar.html' %}
+  </header>
+
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mt-5 pt-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ relative_path_to_root }}/index.html">Home</a></li>
+      <li class="breadcrumb-item"><a href="../index.html">{{ week }}</a></li>
+      <li class="breadcrumb-item"><a href="index.html">{{ day }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ problem_name }}</li>
+    </ol>
+  </nav>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container mb-5">
+    <div class="row">
+      <div class="col-lg-12">
+        <!-- Problem Overview Card -->
+        <div class="card shadow-sm mb-4" data-aos="fade-up">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <i class="bi bi-exclamation-circle-fill text-warning fs-1 me-3"></i>
+              <h1 class="card-title mb-0">{{ problem_name }}</h1>
+            </div>
+            <p class="card-text"><strong>Estimated Time:</strong> {{ time }}</p>
+            <a href="{{ link }}" target="_blank" class="btn btn-primary">
+              <i class="bi bi-box-arrow-up-right me-2"></i> View Original Problem
+            </a>
+          </div>
+        </div>
+
+        <!-- Solution Code Card -->
+        <div class="card shadow-sm mb-4" data-aos="fade-up" data-aos-delay="100">
+          <div class="card-header">
+            <h2 class="mb-0"><i class="bi bi-code-slash me-2"></i> Solution Code</h2>
+          </div>
+          <div class="card-body">
+            <pre><code class="language-python">{{ code_content | e }}</code></pre>
+          </div>
+        </div>
+
+        <!-- Explanation Card with Collapsible Content -->
+        <div class="card shadow-sm mb-4" data-aos="fade-up" data-aos-delay="200">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0"><i class="bi bi-lightbulb me-2"></i> Explanation</h2>
+            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#explanationCollapse" aria-expanded="false" aria-controls="explanationCollapse" id="toggleExplanation">
+              Show Explanation
+            </button>
+          </div>
+          <div class="collapse" id="explanationCollapse">
+            <div class="card-body markdown-content">
+              {{ explanation_content | safe }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center">
+          <a href="../index.html" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i> Back to {{ day }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Back-to-Top Button -->
+  <button id="backToTop" class="btn btn-primary" aria-label="Back to Top">
+    <i class="bi bi-arrow-up"></i>
+  </button>
+
+  <footer>
+    {% include 'footer.html' %}
+  </footer>
+
+  <!-- Highlight.js JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Initialize Highlight.js -->
+  <script>hljs.highlightAll();</script>
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- AOS Library for Animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true
+    });
+
+    // Back-to-Top Button Functionality
+    const backToTopButton = document.getElementById('backToTop');
+
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        backToTopButton.classList.add('show');
+      } else {
+        backToTopButton.classList.remove('show');
+      }
+    });
+
+    backToTopButton.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+
+    // Theme Toggle Script
+    const themeToggle = document.getElementById('themeToggle');
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
+
+    if (currentTheme === 'dark') {
+      document.body.classList.add('dark-theme');
+      themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+    }
+
+    themeToggle.addEventListener('click', function () {
+      document.body.classList.toggle('dark-theme');
+      let theme = 'light';
+      if (document.body.classList.contains('dark-theme')) {
+        theme = 'dark';
+        themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+      } else {
+        themeToggle.innerHTML = '<i class="bi bi-moon-fill"></i>';
+      }
+      localStorage.setItem('theme', theme);
+    });
+
+    // Toggle Explanation Button Text
+    const toggleExplanationBtn = document.getElementById('toggleExplanation');
+    const explanationCollapse = document.getElementById('explanationCollapse');
+
+    if (toggleExplanationBtn && explanationCollapse) {
+      explanationCollapse.addEventListener('show.bs.collapse', () => {
+        toggleExplanationBtn.textContent = 'Hide Explanation';
+      });
+
+      explanationCollapse.addEventListener('hide.bs.collapse', () => {
+        toggleExplanationBtn.textContent = 'Show Explanation';
+      });
+    }
+  </script>
+</body>
+</html>
