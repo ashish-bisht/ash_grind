@@ -168,6 +168,6 @@ def generate_site(base_dir, plan):
     generate_homepage(base_dir, plan)
 
 if __name__ == "__main__":
-    base_directory = "site"
+    base_directory = "docs"
     os.makedirs(base_directory, exist_ok=True)
     generate_site(base_directory, study_plan)
