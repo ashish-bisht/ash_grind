@@ -4,154 +4,126 @@
 <head>
   <meta charset="UTF-8">
   <title>Word Search - Day 1, Week 4 | Study Plan</title>
+  
   <!-- SEO Meta Tags -->
   <meta name="description" content="Detailed solution and explanation for Word Search.">
   <meta name="keywords" content="LeetCode, Word Search, Solution, Week 4, Day 1">
   <meta name="author" content="Ashish Bisht">
+  
   <!-- Viewport Meta -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
   <!-- Favicon -->
   <link rel="icon" href="../../../static/favicon.ico" type="image/x-icon">
-  <!-- Google Fonts: Roboto & Merriweather -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Merriweather:wght@400;700&display=swap">
+  
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600&display=swap">
+  
   <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  
+  <!-- Font Awesome CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <!-- Highlight.js CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
-  <!-- AOS Library for Animations -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+  
   <!-- Custom CSS -->
   <link rel="stylesheet" href="../../../static/styles.css">
-  <!-- Syntax Highlighting Custom Styles -->
+  
+  <!-- Syntax Highlighting Custom Styles (Optional) -->
   <style>
-      pre { line-height: 125%; }
-td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
-span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
-td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
-span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
-.codehilite .hll { background-color: #ffffcc }
-.codehilite { background: #f8f8f8; }
-.codehilite .c { color: #3D7B7B; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #9C6500 } /* Comment.Preproc */
-.codehilite .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
-.codehilite .gr { color: #E40000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #008400 } /* Generic.Inserted */
-.codehilite .go { color: #717171 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #687822 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #717171; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #767600 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #A45A77 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
+    /* Additional custom styles can be added here if necessary */
   </style>
 </head>
 <body>
   <header>
     <!-- templates/navbar.html -->
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm" aria-label="Main Navigation">
-  <div class="container-fluid">
+<nav class="navbar navbar-expand-lg fixed-top" aria-label="Main Navigation">
+  <div class="container">
     <!-- Brand/Logo -->
-    <a class="navbar-brand fw-bold" href="../../../index.html">
-      <i class="bi bi-code-slash"></i> Study Plan
+    <a class="navbar-brand" href="../../../index.html">
+      <i class="fas fa-graduation-cap"></i> Study Plan
     </a>
     <!-- Toggler for mobile view -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" 
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarNav" aria-controls="navbarNav"
+            aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <!-- Navbar Links and Content -->
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarNav">
       <!-- Left-aligned navbar items -->
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <ul class="navbar-nav ms-auto">
         <!-- Home link -->
         <li class="nav-item">
-          <a class="nav-link " aria-current="page" href="../../../index.html">Home</a>
+          <a class="nav-link "
+             aria-current="page"
+             href="../../../index.html">
+            <i class="fas fa-home"></i> Home
+          </a>
         </li>
         <!-- Weeks Dropdown -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle " href="#" id="weeksDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Weeks
+          <a class="nav-link dropdown-toggle
+                    "
+             href="#" id="weeksDropdown" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-calendar-week"></i> Weeks
           </a>
-          <ul class="dropdown-menu" aria-labelledby="weeksDropdown">
+          <ul class="dropdown-menu dropdown-menu-end"
+              aria-labelledby="weeksDropdown">
             
-              <li><a class="dropdown-item" href="../../../Week 1/index.html">Week 1</a></li>
+              <li>
+                <a class="dropdown-item"
+                   href="../../../Week 1/index.html">
+                  Week 1
+                </a>
+              </li>
             
-              <li><a class="dropdown-item" href="../../../Week 2/index.html">Week 2</a></li>
+              <li>
+                <a class="dropdown-item"
+                   href="../../../Week 2/index.html">
+                  Week 2
+                </a>
+              </li>
             
-              <li><a class="dropdown-item" href="../../../Week 3/index.html">Week 3</a></li>
+              <li>
+                <a class="dropdown-item"
+                   href="../../../Week 3/index.html">
+                  Week 3
+                </a>
+              </li>
             
-              <li><a class="dropdown-item" href="../../../Week 4/index.html">Week 4</a></li>
+              <li>
+                <a class="dropdown-item"
+                   href="../../../Week 4/index.html">
+                  Week 4
+                </a>
+              </li>
             
-              <li><a class="dropdown-item" href="../../../Week 5/index.html">Week 5</a></li>
+              <li>
+                <a class="dropdown-item"
+                   href="../../../Week 5/index.html">
+                  Week 5
+                </a>
+              </li>
             
-              <li><a class="dropdown-item" href="../../../Week 6/index.html">Week 6</a></li>
+              <li>
+                <a class="dropdown-item"
+                   href="../../../Week 6/index.html">
+                  Week 6
+                </a>
+              </li>
             
           </ul>
         </li>
-        <!-- Additional nav links can be added here -->
       </ul>
       <!-- Right-aligned navbar items -->
       <!-- Dark Mode Toggle -->
-      <button class="btn btn-outline-light ms-3" id="themeToggle" aria-label="Toggle Dark Mode">
-        <i class="bi bi-moon-fill"></i>
+      <button class="btn btn-link ms-3" id="themeToggle"
+              aria-label="Toggle Dark Mode">
+        <i class="fas fa-moon"></i>
       </button>
     </div>
   </div>
@@ -161,10 +133,18 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   <!-- Breadcrumb Navigation -->
   <nav aria-label="breadcrumb" class="mt-5 pt-4">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="../../../index.html">Home</a></li>
-      <li class="breadcrumb-item"><a href="../index.html">Week 4</a></li>
-      <li class="breadcrumb-item"><a href="index.html">Day 1</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Word Search</li>
+      <li class="breadcrumb-item">
+        <a href="../../../index.html"><i class="fas fa-home"></i> Home</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="../index.html"><i class="fas fa-calendar-alt"></i> Week 4</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="../Day 1/index.html"><i class="fas fa-sun"></i> Day 1</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        <i class="fas fa-puzzle-piece"></i> Word Search
+      </li>
     </ol>
   </nav>
 
@@ -173,23 +153,26 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     <div class="row">
       <div class="col-lg-12">
         <!-- Problem Overview Card -->
-        <div class="card shadow-sm mb-4" data-aos="fade-up">
+        <div class="card mb-4">
           <div class="card-body">
-            <div class="d-flex align-items-center mb-3">
-              <i class="bi bi-exclamation-circle-fill text-warning fs-1 me-3"></i>
-              <h1 class="card-title mb-0">Word Search</h1>
-            </div>
-            <p class="card-text"><strong>Estimated Time:</strong> 30 mins</p>
+            <h1 class="card-title">
+              <i class="fas fa-lightbulb"></i> Word Search
+            </h1>
+            <p class="card-text">
+              <i class="fas fa-clock"></i> <strong>Estimated Time:</strong> 30 mins
+            </p>
             <a href="https://leetcode.com/problems/word-search/" target="_blank" class="btn btn-primary">
-              <i class="bi bi-box-arrow-up-right me-2"></i> View Original Problem
+              <i class="fas fa-external-link-alt"></i> View Original Problem
             </a>
           </div>
         </div>
 
         <!-- Solution Code Card -->
-        <div class="card shadow-sm mb-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card mb-4">
           <div class="card-header">
-            <h2 class="mb-0"><i class="bi bi-code-slash me-2"></i> Solution Code</h2>
+            <h2 class="mb-0">
+              <i class="fas fa-code"></i> Solution Code
+            </h2>
           </div>
           <div class="card-body">
             <pre><code class="language-python"># TODO: Write the solution code here.
@@ -197,26 +180,23 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
           </div>
         </div>
 
-        <!-- Explanation Card with Collapsible Content -->
-        <div class="card shadow-sm mb-4" data-aos="fade-up" data-aos-delay="200">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h2 class="mb-0"><i class="bi bi-lightbulb me-2"></i> Explanation</h2>
-            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#explanationCollapse" aria-expanded="false" aria-controls="explanationCollapse" id="toggleExplanation">
-              Show Explanation
-            </button>
+        <!-- Explanation Card -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h2 class="mb-0">
+              <i class="fas fa-info-circle"></i> Explanation
+            </h2>
           </div>
-          <div class="collapse" id="explanationCollapse">
-            <div class="card-body markdown-content">
-              <h1>Word Search Explanation</h1>
+          <div class="card-body markdown-content">
+            <h1>Word Search Explanation</h1>
 <p>TODO: Write the explanation here.</p>
-            </div>
           </div>
         </div>
 
         <!-- Back Button -->
         <div class="text-center">
-          <a href="../index.html" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-2"></i> Back to Day 1
+          <a href="../Day 1/index.html" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Day 1
           </a>
         </div>
       </div>
@@ -225,49 +205,77 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 
   <!-- Back-to-Top Button -->
   <button id="backToTop" class="btn btn-primary" aria-label="Back to Top">
-    <i class="bi bi-arrow-up"></i>
+    <i class="fas fa-arrow-up"></i>
   </button>
 
   <footer>
     <!-- templates/footer.html -->
-<footer class="footer bg-dark text-white mt-5 py-4">
+<footer class="footer mt-5 py-4">
   <div class="container text-center">
     <!-- Social Media Links -->
     <div class="social-icons mb-3">
-      <a href="https://github.com/ashishbisht" class="text-white me-3" aria-label="GitHub" target="_blank" rel="noopener">
-        <i class="bi bi-github fs-4"></i>
+      <a href="https://github.com/ashish-bisht" class="me-3"
+         aria-label="GitHub" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
       </a>
-      <a href="https://twitter.com/ashishbisht" class="text-white me-3" aria-label="Twitter" target="_blank" rel="noopener">
-        <i class="bi bi-twitter fs-4"></i>
-      </a>
-      <a href="https://linkedin.com/in/ashishbisht" class="text-white" aria-label="LinkedIn" target="_blank" rel="noopener">
-        <i class="bi bi-linkedin fs-4"></i>
+      <!-- <a href="https://twitter.com/ashishbisht" class="me-3"
+         aria-label="Twitter" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a> -->
+      <a href="https://www.linkedin.com/in/am-ashish-bisht/"
+         aria-label="LinkedIn" target="_blank" rel="noopener">
+        <i class="fab fa-linkedin"></i>
       </a>
     </div>
     <!-- Footer Links -->
-    <div class="footer-links mb-3">
-      <a href="https://ashishbishtportfolio.com" class="text-white text-decoration-none">Ashish's Portfolio</a>
+    <!-- <div class="footer-links mb-3">
+      <a href="https://ashishbishtportfolio.com" class="text-decoration-none">
+        Ashish's Portfolio
+      </a>
       <!-- Add more footer links if necessary -->
-    </div>
+    </div> 
     <!-- Copyright -->
-    <p class="mb-0">&copy; 2024 Ashish Bisht | Built with ❤️ and Python</p>
+    <p class="mb-0">
+      &copy; 2024 Ashish Bisht | Built with ❤️ and Python
+    </p>
   </div>
 </footer>
   </footer>
 
   <!-- Highlight.js JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  
   <!-- Initialize Highlight.js -->
   <script>hljs.highlightAll();</script>
+  
   <!-- Bootstrap JS and dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- AOS Library for Animations -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  
+  <!-- Theme Toggle Script -->
   <script>
-    AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: true
+    // Dark Mode Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
+
+    if (currentTheme === 'dark') {
+      document.body.classList.add('dark-theme');
+      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+      themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+
+    themeToggle.addEventListener('click', function () {
+      document.body.classList.toggle('dark-theme');
+      let theme = 'light';
+      if (document.body.classList.contains('dark-theme')) {
+        theme = 'dark';
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      } else {
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+      }
+      localStorage.setItem('theme', theme);
     });
 
     // Back-to-Top Button Functionality
@@ -287,43 +295,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         behavior: 'smooth'
       });
     });
-
-    // Theme Toggle Script
-    const themeToggle = document.getElementById('themeToggle');
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
-
-    if (currentTheme === 'dark') {
-      document.body.classList.add('dark-theme');
-      themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
-    }
-
-    themeToggle.addEventListener('click', function () {
-      document.body.classList.toggle('dark-theme');
-      let theme = 'light';
-      if (document.body.classList.contains('dark-theme')) {
-        theme = 'dark';
-        themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
-      } else {
-        themeToggle.innerHTML = '<i class="bi bi-moon-fill"></i>';
-      }
-      localStorage.setItem('theme', theme);
-    });
-
-    // Toggle Explanation Button Text
-    const toggleExplanationBtn = document.getElementById('toggleExplanation');
-    const explanationCollapse = document.getElementById('explanationCollapse');
-
-    if (toggleExplanationBtn && explanationCollapse) {
-      explanationCollapse.addEventListener('show.bs.collapse', () => {
-        toggleExplanationBtn.textContent = 'Hide Explanation';
-      });
-
-      explanationCollapse.addEventListener('hide.bs.collapse', () => {
-        toggleExplanationBtn.textContent = 'Show Explanation';
-      });
-    }
   </script>
 </body>
 </html>
