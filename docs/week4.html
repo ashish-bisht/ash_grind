@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive LeetCode Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A two-column SPA. The left column is a fixed navigation list of all LeetCode problems, allowing for quick jumps. The right column displays the detailed content for the selected problem. This content is organized into three tabs: "Problem", "Solution", and "Analysis" to prevent information overload and allow for focused study. An "Overview" section with a chart is included for high-level comparison. This structure was chosen to transform the linear report into a non-linear, user-driven study tool, which is more effective for interview prep. -->
+    <!-- Visualization & Content Choices: Report Info: Problem name, description, code, complexities, analysis. Goal: Organize, Compare, Inform. Viz/Presentation Method: The primary information is presented in structured HTML using a tabbed interface for clarity. Code is in styled <pre><code> blocks with a copy button. For the mandatory visualization requirement, a "Complexity Overview" bar chart (Chart.js/Canvas) is used. It maps qualitative time complexities (O(n), O(n^2), etc.) to a numerical scale to provide a visual summary of problem difficulties, which is a key aspect of the report. A dropdown allows filtering the chart by problem difficulty (Easy, Medium). Interaction: Click-based navigation via the side-list and content tabs. A button to copy code snippets enhances usability. Tooltips on the chart provide detailed complexity info on hover. Library/Method: Vanilla JS for logic, Tailwind for styling, Chart.js for visualization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fdfcf9; }
+        .nav-link.active { background-color: #e2e8f0; color: #1e293b; font-weight: 600; }
+        .tab-btn.active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff;}
+        .content-panel { display: none; }
+        .content-panel.active { display: block; }
+        .chart-container { position: relative; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; height: 60vh; max-height: 500px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="flex h-screen">
+        <aside id="nav-container" class="w-1/4 max-w-xs h-full bg-gray-50 border-r border-gray-200 flex flex-col">
+            <h1 class="text-lg font-bold p-4 border-b border-gray-200 text-gray-700">LeetCode Problems</h1>
+            <div id="nav-list" class="flex-grow overflow-y-auto"></div>
+        </aside>
+        
+        <main id="main-content" class="w-3/4 flex-grow p-6 md:p-8 lg:p-10 overflow-y-auto">
+            <div id="overview-panel" class="content-panel active">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Problems Overview</h2>
+                <p class="mb-6 text-gray-600">
+                    Welcome to your interactive LeetCode study guide. This application transforms the detailed report into a set of "flashcards" for efficient interview preparation. Select a problem from the list on the left to review its details. The overview below provides a visual comparison of the optimal time complexities for the problems, which can help you understand which algorithmic approaches are more efficient. You can filter the chart by difficulty.
+                </p>
+                 <div class="mb-6 flex items-center space-x-4">
+                    <label for="difficulty-filter" class="text-gray-700 font-medium">Filter by Difficulty:</label>
+                    <select id="difficulty-filter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5">
+                        <option value="all">All</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+                <div class="p-4 bg-white rounded-xl shadow-md">
+                    <div class="chart-container">
+                        <canvas id="complexityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div id="problems-container"></div>
+        </main>
+    </div>
+
+<script>
+    const problemsData = [
+        {
+            id: "number_of_islands",
+            title: "1. Number of Islands",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/number-of-islands",
+            description: "Given an `m x n` 2D binary grid `grid` which represents a map of '1's (land) and '0's (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically.",
+            constraints: "m == grid.length, n == grid[i].length, 1 <= m, n <= 300.",
+            solution: `class Solution:
+    def numIslands(self, grid: list[list[str]]) -> int:
+        if not grid:
+            return 0
+        
+        rows, cols = len(grid), len(grid[0])
+        num_islands = 0
+        
+        def dfs(r, c):
+            if not (0 <= r < rows and 0 <= c < cols and grid[r][c] == '1'):
+                return
+            
+            grid[r][c] = '#' # Mark as visited
+            
+            dfs(r + 1, c)
+            dfs(r - 1, c)
+            dfs(r, c + 1)
+            dfs(r, c - 1)
+
+        for r in range(rows):
+            for c in range(cols):
+                if grid[r][c] == '1':
+                    num_islands += 1
+                    dfs(r, c)
+        
+        return num_islands`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(m*n) in worst case",
+            keyIdea: "Grid Traversal (DFS/BFS)",
+            analysis: "The core idea is to iterate through each cell of the grid. If a cell contains a '1' (land) and has not been visited, it signifies the discovery of a new island. Increment the island count, and then start a traversal (like DFS or BFS) from that cell to find and mark all connected land cells as visited. This 'sinking' or marking process ensures that connected parts of the same island are not counted multiple times. By the end of the grid scan, the count will be accurate."
+        },
+        {
+            id: "course_schedule",
+            title: "2. Course Schedule",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/course-schedule",
+            description: "There are `numCourses` you have to take, labeled from 0 to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [ai, bi]` indicates that you must take course `bi` first if you want to take course `ai`. Return `true` if you can finish all courses. Otherwise, return `false`.",
+            constraints: "1 <= numCourses <= 2000, 0 <= prerequisites.length <= 5000.",
+            solution: `class Solution:
+    def canFinish(self, numCourses: int, prerequisites: list[list[int]]) -> bool:
+        adj = {i: [] for i in range(numCourses)}
+        for crs, pre in prerequisites:
+            adj[crs].append(pre)
+        
+        visit_set = set() # Courses visited in the current DFS path
+
+        def dfs(crs):
+            if crs in visit_set:
+                return False # Cycle detected
+            if adj[crs] == []:
+                return True # No prereqs, can finish
+
+            visit_set.add(crs)
+            for pre in adj[crs]:
+                if not dfs(pre):
+                    return False
+            visit_set.remove(crs)
+            adj[crs] = [] # Memoization/Pruning
+            return True
+
+        for crs in range(numCourses):
+            if not dfs(crs):
+                return False
+        return True`,
+            timeComplexity: "O(V+E)",
+            spaceComplexity: "O(V+E)",
+            keyIdea: "Topological Sort (Cycle Detection in Directed Graph)",
+            analysis: "This problem is equivalent to determining if a directed graph has a cycle. The courses are vertices and prerequisites are directed edges. A cycle (`A -> B -> A`) means it's impossible to finish. We can use Depth-First Search (DFS) for cycle detection. A `visit_set` tracks nodes currently in the recursion stack for the *current* DFS path. If we encounter a node already in `visit_set`, we've found a back edge, indicating a cycle. An alternative is Kahn's algorithm (BFS with in-degrees)."
+        },
+        {
+            id: "course_schedule_ii",
+            title: "3. Course Schedule II",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/course-schedule-ii",
+            description: "Same as Course Schedule, but return the ordering of courses you should take to finish all courses. If it's impossible, return an empty array.",
+            constraints: "Same as Course Schedule.",
+            solution: `class Solution:
+    def findOrder(self, numCourses: int, prerequisites: list[list[int]]) -> list[int]:
+        adj = {c: [] for c in range(numCourses)}
+        in_degree = [0] * numCourses
+        for crs, pre in prerequisites:
+            adj[pre].append(crs)
+            in_degree[crs] += 1
+        
+        q = [c for c in range(numCourses) if in_degree[c] == 0]
+        res = []
+        
+        while q:
+            crs = q.pop(0)
+            res.append(crs)
+            for neighbor in adj[crs]:
+                in_degree[neighbor] -= 1
+                if in_degree[neighbor] == 0:
+                    q.append(neighbor)
+        
+        return res if len(res) == numCourses else []`,
+            timeComplexity: "O(V+E)",
+            spaceComplexity: "O(V+E)",
+            keyIdea: "Topological Sort (Kahn's Algorithm)",
+            analysis: "This requires not just cycle detection, but returning a valid topological sort. Kahn's algorithm (using BFS) is a natural fit. First, build an adjacency list and an array of in-degrees for each course. Initialize a queue with all courses that have an in-degree of 0 (no prerequisites). Then, process the queue: dequeue a course, add it to the result list, and for each of its neighbors, decrement their in-degree. If a neighbor's in-degree becomes 0, enqueue it. If the final result list's length equals `numCourses`, a valid order was found."
+        },
+        {
+            id: "clone_graph",
+            title: "4. Clone Graph",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/clone-graph",
+            description: "Given a reference of a node in a connected undirected graph. Return a deep copy (clone) of the graph.",
+            constraints: "The number of nodes in the graph is in the range [0, 100]. Each node's value is unique.",
+            solution: `"""
+# Definition for a Node.
+class Node:
+    def __init__(self, val = 0, neighbors = None):
+        self.val = val
+        self.neighbors = neighbors if neighbors is not None else []
+"""
+class Solution:
+    def cloneGraph(self, node: 'Node') -> 'Node':
+        if not node:
+            return None
+        
+        old_to_new = {}
+
+        def dfs(original_node):
+            if original_node in old_to_new:
+                return old_to_new[original_node]
+
+            copy_node = Node(original_node.val)
+            old_to_new[original_node] = copy_node
+            
+            for neighbor in original_node.neighbors:
+                copy_node.neighbors.append(dfs(neighbor))
+            
+            return copy_node
+
+        return dfs(node)`,
+            timeComplexity: "O(V+E)",
+            spaceComplexity: "O(V)",
+            keyIdea: "Graph Traversal (DFS/BFS) with Hashing",
+            analysis: "The main challenge is handling cycles and ensuring each node is cloned only once. A hash map (`old_to_new`) is used to store mappings from original nodes to their corresponding new, cloned nodes. During a traversal (DFS shown here), if we encounter a node we've already cloned (i.e., it's in the map), we return the existing copy. Otherwise, we create a new copy, store it in the map, and then recursively call the clone function for all its neighbors to build the new `neighbors` list."
+        },
+        {
+            id: "number_of_connected_components",
+            title: "5. Number of Connected Components",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/number-of-connected-components-in-an-undirected-graph",
+            description: "Given `n` nodes and a list of `edges`, find the number of connected components in the graph.",
+            constraints: "You can assume that no duplicate edges will appear in `edges`.",
+            solution: `class Solution:
+    def countComponents(self, n: int, edges: list[list[int]]) -> int:
+        adj = {i: [] for i in range(n)}
+        for u, v in edges:
+            adj[u].append(v)
+            adj[v].append(u)
+            
+        visited = set()
+        count = 0
+        
+        def dfs(node):
+            if node in visited:
+                return
+            visited.add(node)
+            for neighbor in adj[node]:
+                dfs(neighbor)
+
+        for i in range(n):
+            if i not in visited:
+                count += 1
+                dfs(i)
+                
+        return count`,
+            timeComplexity: "O(V+E)",
+            spaceComplexity: "O(V+E)",
+            keyIdea: "Graph Traversal (DFS/BFS) or Union-Find",
+            analysis: "This problem is a direct application of graph traversal to find connected components. Build an adjacency list for the graph. Then, iterate through all nodes from 0 to `n-1`. Maintain a `visited` set. If a node has not been visited, it means we've found a new component. Increment a `count`, then start a traversal (DFS or BFS) from this node to visit all other nodes in the same component. The final `count` is the answer. Union-Find is another excellent approach for this."
+        },
+        {
+            id: "graph_valid_tree",
+            title: "6. Graph Valid Tree",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/graph-valid-tree",
+            description: "Given `n` nodes and a list of undirected `edges`, write a function to check whether these edges make up a valid tree.",
+            constraints: "A valid tree has no cycles and is fully connected.",
+            solution: `class Solution:
+    def validTree(self, n: int, edges: list[list[int]]) -> bool:
+        if not n:
+            return True
+        if len(edges) != n - 1:
+            return False
+
+        adj = {i: [] for i in range(n)}
+        for u, v in edges:
+            adj[u].append(v)
+            adj[v].append(u)
+        
+        visited = set()
+        
+        def dfs(node, prev):
+            if node in visited:
+                return False # Cycle detected
+
+            visited.add(node)
+            for neighbor in adj[node]:
+                if neighbor == prev:
+                    continue
+                if not dfs(neighbor, node):
+                    return False
+            return True
+
+        # Check for cycles and connectivity
+        # If DFS is successful and we've visited all nodes, it's a valid tree.
+        return dfs(0, -1) and len(visited) == n`,
+            timeComplexity: "O(V+E)",
+            spaceComplexity: "O(V+E)",
+            keyIdea: "Graph Theory (Connectivity + Acyclicity)",
+            analysis: "A graph is a tree if and only if two conditions are met: it is fully connected, AND it is acyclic. A property of trees is that for `n` nodes, a tree must have exactly `n-1` edges. We can use this as a quick check: if `len(edges) != n - 1`, it cannot be a tree. If it does have `n-1` edges, we only need to check one of the two conditions (connectivity or acyclicity), as the other is implied. The code performs a single DFS starting from node 0 to check for both cycles and connectivity simultaneously. If the DFS completes without finding a cycle AND `len(visited) == n`, the graph is a valid tree."
+        },
+        {
+            id: "pacific_atlantic",
+            title: "7. Pacific Atlantic Water Flow",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/pacific-atlantic-water-flow",
+            description: "Given an `m x n` integer `matrix` of heights, return a list of grid coordinates where water can flow to both the Pacific and Atlantic oceans. Water can flow to an adjacent cell if its height is less than or equal to the current cell's height.",
+            constraints: "1 <= m, n <= 200.",
+            solution: `class Solution:
+    def pacificAtlantic(self, heights: list[list[int]]) -> list[list[int]]:
+        ROWS, COLS = len(heights), len(heights[0])
+        pacific, atlantic = set(), set()
+        
+        def dfs(r, c, visited_set, prev_height):
+            if not (0 <= r < ROWS and 0 <= c < COLS and
+                    (r, c) not in visited_set and heights[r][c] >= prev_height):
+                return
+            
+            visited_set.add((r, c))
+            dfs(r + 1, c, visited_set, heights[r][c])
+            dfs(r - 1, c, visited_set, heights[r][c])
+            dfs(r, c + 1, visited_set, heights[r][c])
+            dfs(r, c - 1, visited_set, heights[r][c])
+
+        # Start DFS from all border cells for each ocean
+        for c in range(COLS):
+            dfs(0, c, pacific, heights[0][c])
+            dfs(ROWS - 1, c, atlantic, heights[ROWS - 1][c])
+        for r in range(ROWS):
+            dfs(r, 0, pacific, heights[r][0])
+            dfs(r, COLS - 1, atlantic, heights[r][COLS - 1])
+            
+        return list(pacific.intersection(atlantic))`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(m*n)",
+            keyIdea: "Multi-Source DFS/BFS from Ocean Borders",
+            analysis: "Instead of checking from each cell whether it can reach both oceans, it's more efficient to start from the oceans and see which cells they can reach. We can think of this as 'reverse' water flow. Perform two separate traversals (DFS or BFS): one starting from all cells bordering the Pacific, and another from all cells bordering the Atlantic. In these traversals, water can 'flow' from a cell to an adjacent one if the adjacent cell's height is *greater than or equal* to the current cell's height. The final result is the set of cells that were visited in both traversals."
+        },
+        {
+            id: "rotting_oranges",
+            title: "8. Rotting Oranges",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/rotting-oranges",
+            description: "You are given an `m x n` grid where each cell can have one of three values: `0` (empty), `1` (fresh orange), or `2` (rotten orange). Every minute, any fresh orange that is 4-directionally adjacent to a rotten orange becomes rotten. Return the minimum number of minutes that must elapse until no cell has a fresh orange. If this is impossible, return -1.",
+            constraints: "1 <= m, n <= 10.",
+            solution: `from collections import deque
+class Solution:
+    def orangesRotting(self, grid: list[list[int]]) -> int:
+        q = deque()
+        fresh_oranges = 0
+        ROWS, COLS = len(grid), len(grid[0])
+
+        for r in range(ROWS):
+            for c in range(COLS):
+                if grid[r][c] == 1:
+                    fresh_oranges += 1
+                elif grid[r][c] == 2:
+                    q.append((r, c))
+        
+        minutes = 0
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        
+        while q and fresh_oranges > 0:
+            for _ in range(len(q)):
+                r, c = q.popleft()
+                for dr, dc in directions:
+                    nr, nc = r + dr, c + dc
+                    if (0 <= nr < ROWS and 0 <= nc < COLS and grid[nr][nc] == 1):
+                        grid[nr][nc] = 2
+                        q.append((nr, nc))
+                        fresh_oranges -= 1
+            minutes += 1
+            
+        return minutes if fresh_oranges == 0 else -1`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(m*n)",
+            keyIdea: "Multi-Source Breadth-First Search (BFS)",
+            analysis: "This problem asks for the minimum time for a process to spread, which is a classic application of BFS. The key is to start the BFS from all *initially* rotten oranges at the same time. This is a multi-source BFS. The queue is initialized with the coordinates of all '2's. The BFS proceeds in levels, where each level corresponds to one minute passing. After the BFS completes, if there are still any fresh oranges left, it's impossible, so we return -1. Otherwise, the number of levels traversed is the answer."
+        },
+        {
+            id: "cheapest_flights_k_stops",
+            title: "9. Cheapest Flights Within K Stops",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/cheapest-flights-within-k-stops",
+            description: "There are `n` cities connected by some number of flights. You are given an array `flights` where `flights[i] = [fromi, toi, pricei]`. You are also given three integers `src`, `dst`, and `k`. Return the cheapest price to travel from `src` to `dst` with at most `k` stops.",
+            constraints: "1 <= n <= 100, 0 <= k < n.",
+            solution: `import heapq
+class Solution:
+    def findCheapestPrice(self, n: int, flights: list[list[int]], src: int, dst: int, k: int) -> int:
+        adj = {i: [] for i in range(n)}
+        for u, v, w in flights:
+            adj[u].append((v, w))
+            
+        # (cost, node, stops)
+        pq = [(0, src, 0)]
+        # Track min cost to reach a node with a certain number of stops
+        min_costs = {}
+
+        while pq:
+            cost, node, stops = heapq.heappop(pq)
+            
+            if (node, stops) in min_costs and min_costs[(node, stops)] <= cost:
+                continue
+            min_costs[(node, stops)] = cost
+
+            if node == dst:
+                return cost
+
+            if stops <= k:
+                for neighbor, price in adj[node]:
+                    heapq.heappush(pq, (cost + price, neighbor, stops + 1))
+        
+        return -1`,
+            timeComplexity: "O(E * k * log(V*k))",
+            spaceComplexity: "O(V*k)",
+            keyIdea: "Modified Dijkstra's Algorithm",
+            analysis: "Standard Dijkstra's finds the shortest path but doesn't account for the number of stops. A modified Dijkstra can solve this. The state in our priority queue must include not just cost and node, but also the number of stops: `(cost, node, stops)`. This way, we explore paths based on cost, but we only continue exploring from a node if the number of stops is within the `k` limit. A `visited` or `min_costs` structure must also account for stops, as reaching a node with fewer stops might be a better path even if it's currently more expensive."
+        },
+        {
+            id: "min_height_trees",
+            title: "10. Minimum Height Trees",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/minimum-height-trees",
+            description: "A tree is an undirected graph with no cycles. For such a graph, any node can be chosen as the root. The result is a rooted tree. The height of a rooted tree is the number of edges on the longest downward path from the root to a leaf. Among all possible rooted trees, those with minimum height are called minimum height trees (MHTs). Given a tree of `n` nodes labeled from 0 to `n - 1`, return a list of all MHTs' root labels.",
+            constraints: "1 <= n <= 2 * 10^4.",
+            solution: `from collections import defaultdict, deque
+class Solution:
+    def findMinHeightTrees(self, n: int, edges: list[list[int]]) -> list[int]:
+        if n == 1: return [0]
+        
+        adj = defaultdict(set)
+        for u, v in edges:
+            adj[u].add(v)
+            adj[v].add(u)
+        
+        leaves = deque([i for i in range(n) if len(adj[i]) == 1])
+        
+        remaining_nodes = n
+        while remaining_nodes > 2:
+            num_leaves = len(leaves)
+            remaining_nodes -= num_leaves
+            for _ in range(num_leaves):
+                leaf = leaves.popleft()
+                neighbor = adj[leaf].pop()
+                adj[neighbor].remove(leaf)
+                if len(adj[neighbor]) == 1:
+                    leaves.append(neighbor)
+                    
+        return list(leaves)`,
+            timeComplexity: "O(V+E)",
+            spaceComplexity: "O(V+E)",
+            keyIdea: "Topological Sort (Leaf Peeling)",
+            analysis: "The roots of the Minimum Height Trees are the center(s) of the graph. We can find these by iteratively 'peeling' away the leaf nodes (nodes with degree 1). Start by identifying all current leaf nodes. In each step, remove all current leaves and update the degrees of their neighbors. The neighbors that become new leaves are the leaves for the next iteration. This process continues until only 1 or 2 nodes remain. These final nodes are the graph's center(s) and the roots of the MHTs."
+        },
+        {
+            id: "coin_change",
+            title: "11. Coin Change",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/coin-change",
+            description: "You are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money. Return the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return -1.",
+            constraints: "1 <= coins.length <= 12, 0 <= amount <= 10^4.",
+            solution: `class Solution:
+    def coinChange(self, coins: list[int], amount: int) -> int:
+        dp = [float('inf')] * (amount + 1)
+        dp[0] = 0
+        
+        for a in range(1, amount + 1):
+            for c in coins:
+                if a - c >= 0:
+                    dp[a] = min(dp[a], 1 + dp[a - c])
+                    
+        return dp[amount] if dp[amount] != float('inf') else -1`,
+            timeComplexity: "O(amount * len(coins))",
+            spaceComplexity: "O(amount)",
+            keyIdea: "Dynamic Programming (Bottom-up)",
+            analysis: "This is a classic unbounded knapsack-type problem. We use dynamic programming where `dp[i]` stores the minimum number of coins needed to make amount `i`. To calculate `dp[a]`, we consider each coin `c`. If we use coin `c`, the number of coins required is `1 + dp[a - c]`. We take the minimum over all possible coins `c` that can be used. The base case is `dp[0] = 0` (zero coins for amount zero). The final answer is `dp[amount]`."
+        },
+        {
+            id: "longest_increasing_subsequence",
+            title: "12. Longest Increasing Subsequence",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/longest-increasing-subsequence",
+            description: "Given an integer array `nums`, return the length of the longest strictly increasing subsequence.",
+            constraints: "1 <= nums.length <= 2500.",
+            solution: `import bisect
+class Solution:
+    def lengthOfLIS(self, nums: list[int]) -> int:
+        # O(n log n) solution
+        sub = []
+        for num in nums:
+            i = bisect.bisect_left(sub, num)
+            
+            # If num is greater than all elements in sub
+            if i == len(sub):
+                sub.append(num)
+            # Otherwise, replace the element at i with num
+            else:
+                sub[i] = num
+        
+        return len(sub)`,
+            timeComplexity: "O(n log n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "DP with Binary Search (Patience Sorting)",
+            analysis: "A standard DP approach takes O(n^2). The more optimal O(n log n) solution uses a list `sub` which stores the smallest ending element of an increasing subsequence of a certain length. For each `num` in `nums`, we find its place in `sub` using binary search. If `num` is larger than all elements in `sub`, it extends the longest subsequence found so far, so we append it. Otherwise, it can potentially form a shorter subsequence with a smaller ending number, so we replace the smallest element in `sub` that is greater than or equal to `num`. The length of `sub` at the end is the length of the LIS."
+        },
+        {
+            id: "word_break",
+            title: "13. Word Break",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/word-break",
+            description: "Given a string `s` and a dictionary of strings `wordDict`, return `true` if `s` can be segmented into a space-separated sequence of one or more dictionary words.",
+            constraints: "1 <= s.length <= 300, 1 <= wordDict.length <= 1000.",
+            solution: `class Solution:
+    def wordBreak(self, s: str, wordDict: list[str]) -> bool:
+        word_set = set(wordDict)
+        dp = [False] * (len(s) + 1)
+        dp[0] = True # Base case: empty string
+        
+        for i in range(1, len(s) + 1):
+            for j in range(i):
+                # Check if dp[j] is true and the substring s[j:i] is in the dictionary
+                if dp[j] and s[j:i] in word_set:
+                    dp[i] = True
+                    break # Found a valid segmentation for s[:i]
+        
+        return dp[len(s)]`,
+            timeComplexity: "O(n^2 * m)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Dynamic Programming",
+            analysis: "We use a 1D DP array where `dp[i]` is true if the prefix `s[:i]` can be segmented. The base case is `dp[0] = true` for an empty string. To compute `dp[i]`, we iterate through all possible split points `j` before `i`. If `dp[j]` is true (meaning `s[:j]` is valid) AND the remaining substring `s[j:i]` is a word in our dictionary, then `s[:i]` is also valid, so we set `dp[i] = true` and can break the inner loop. The final answer is `dp[len(s)]`."
+        },
+        {
+            id: "partition_equal_subset_sum",
+            title: "14. Partition Equal Subset Sum",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/partition-equal-subset-sum",
+            description: "Given a non-empty array `nums` containing only positive integers, find if the array can be partitioned into two subsets such that the sum of elements in both subsets is equal.",
+            constraints: "1 <= nums.length <= 200, 1 <= nums[i] <= 100.",
+            solution: `class Solution:
+    def canPartition(self, nums: list[int]) -> bool:
+        total_sum = sum(nums)
+        if total_sum % 2 != 0:
+            return False
+            
+        target = total_sum // 2
+        dp = {0}
+        
+        for n in nums:
+            new_dp = set()
+            for t in dp:
+                if t + n == target:
+                    return True
+                new_dp.add(t + n)
+                new_dp.add(t)
+            dp = new_dp
+        
+        return False`,
+            timeComplexity: "O(n * sum(nums))",
+            spaceComplexity: "O(sum(nums))",
+            keyIdea: "Dynamic Programming (Subset Sum)",
+            analysis: "This problem can be reduced to the subset sum problem. If we can find a subset of `nums` that sums up to `total_sum / 2`, then the remaining elements will also sum to the same amount. We can use dynamic programming where a set `dp` stores all possible sums achievable using the numbers processed so far. For each number `n`, we update the set by adding `n` to every existing sum in the set. If at any point the `target` sum is achieved, we return `true`."
+        },
+        {
+            id: "house_robber",
+            title: "15. House Robber",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/house-robber",
+            description: "You are a professional robber planning to rob houses along a street. Each house has a certain amount of money. The only constraint is that you cannot rob adjacent houses. Given an integer array `nums` representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.",
+            constraints: "1 <= nums.length <= 100.",
+            solution: `class Solution:
+    def rob(self, nums: list[int]) -> int:
+        rob1, rob2 = 0, 0
+        
+        # [rob1, rob2, n, n+1, ...]
+        for n in nums:
+            # max profit if we rob house n is n + rob1
+            # max profit if we don't rob house n is rob2
+            temp = max(n + rob1, rob2)
+            rob1 = rob2
+            rob2 = temp
+        return rob2`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Dynamic Programming with Space Optimization",
+            analysis: "Let `dp[i]` be the maximum amount that can be robbed up to house `i`. The recurrence relation is `dp[i] = max(dp[i-1], dp[i-2] + nums[i])`. This means the max profit at house `i` is either the profit from the previous house (skipping `i`) or the profit from two houses ago plus the money from house `i`. Since we only need the previous two values (`dp[i-1]` and `dp[i-2]`) to calculate the current one, we can optimize space to O(1) by using two variables (`rob1` and `rob2`) to track these values."
+        },
+        {
+            id: "decode_ways",
+            title: "16. Decode Ways",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/decode-ways",
+            description: "A message containing letters from A-Z can be encoded into numbers using the mapping 'A' -> 1, 'B' -> 2, ..., 'Z' -> 26. Given a string `s` containing only digits, return the number of ways to decode it.",
+            constraints: "1 <= s.length <= 100.",
+            solution: `class Solution:
+    def numDecodings(self, s: str) -> int:
+        if s[0] == '0':
+            return 0
+        
+        # dp[i] = number of ways to decode s[:i]
+        # Using two variables for space optimization
+        dp_one_back, dp_two_back = 1, 1
+        
+        for i in range(1, len(s)):
+            current_dp = 0
+            # Check one-digit decoding
+            if s[i] != '0':
+                current_dp = dp_one_back
+            
+            # Check two-digit decoding
+            two_digit = int(s[i-1:i+1])
+            if 10 <= two_digit <= 26:
+                current_dp += dp_two_back
+            
+            dp_two_back = dp_one_back
+            dp_one_back = current_dp
+            
+        return dp_one_back`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Dynamic Programming",
+            analysis: "Let `dp[i]` be the number of ways to decode the prefix `s[:i]`. `dp[i]` can be derived from `dp[i-1]` and `dp[i-2]`. If the i-th character `s[i-1]` is a valid single-digit code (1-9), we can add `dp[i-1]` ways. If the last two characters `s[i-2:i]` form a valid two-digit code (10-26), we can add `dp[i-2]` ways. We can space-optimize this from O(n) to O(1) by only keeping track of the last two DP values."
+        },
+        {
+            id: "combination_sum_iv",
+            title: "17. Combination Sum IV",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/combination-sum-iv",
+            description: "Given an array of distinct integers `nums` and a `target` integer, return the number of possible combinations that add up to `target`. Note that different sequences are counted as different combinations.",
+            constraints: "1 <= nums.length <= 200, 1 <= target <= 1000.",
+            solution: `class Solution:
+    def combinationSum4(self, nums: list[int], target: int) -> int:
+        dp = {0: 1} # Base case: one way to make sum 0 (by choosing nothing)
+
+        for i in range(1, target + 1):
+            dp[i] = 0
+            for n in nums:
+                dp[i] += dp.get(i - n, 0)
+        
+        return dp[target]`,
+            timeComplexity: "O(target * len(nums))",
+            spaceComplexity: "O(target)",
+            keyIdea: "Dynamic Programming (Bottom-up)",
+            analysis: "This is a DP problem where order matters. Let `dp[i]` be the number of ways to form the sum `i`. To calculate `dp[i]`, we can try to form it by adding any number `n` from `nums` to a previously formed sum `i-n`. Therefore, `dp[i]` is the sum of `dp[i-n]` for all `n` in `nums`. The base case is `dp[0] = 1`. We build up the `dp` table from 1 to `target`."
+        },
+        {
+            id: "maximal_square",
+            title: "18. Maximal Square",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/maximal-square",
+            description: "Given an `m x n` binary matrix filled with 0s and 1s, find the largest square containing only 1s and return its area.",
+            constraints: "1 <= m, n <= 300.",
+            solution: `class Solution:
+    def maximalSquare(self, matrix: list[list[str]]) -> int:
+        ROWS, COLS = len(matrix), len(matrix[0])
+        dp = [[0] * (COLS + 1) for _ in range(ROWS + 1)]
+        max_side = 0
+
+        for r in range(ROWS):
+            for c in range(COLS):
+                if matrix[r][c] == '1':
+                    dp[r + 1][c + 1] = 1 + min(dp[r][c], dp[r + 1][c], dp[r][c + 1])
+                    max_side = max(max_side, dp[r + 1][c + 1])
+        
+        return max_side * max_side`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(m*n)",
+            keyIdea: "Dynamic Programming",
+            analysis: "Let `dp[i][j]` be the side length of the largest square of 1s whose bottom-right corner is at cell `(i-1, j-1)`. If `matrix[i-1][j-1]` is '0', then `dp[i][j]` is 0. If it's '1', then the size of the square is limited by its top, left, and top-left neighbors. Specifically, `dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])`. We track the `max_side` found and return its area (`max_side^2`)."
+        },
+        {
+            id: "pow_x_n",
+            title: "19. Pow(x, n)",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/powx-n",
+            description: "Implement `pow(x, n)`, which calculates `x` raised to the power `n`.",
+            constraints: "-100.0 < x < 100.0, -2^31 <= n <= 2^31 - 1.",
+            solution: `class Solution:
+    def myPow(self, x: float, n: int) -> float:
+        
+        def power(base, exp):
+            if exp == 0:
+                return 1
+            if base == 0:
+                return 0
+            
+            res = power(base * base, exp // 2)
+            return base * res if exp % 2 else res
+
+        res = power(x, abs(n))
+        return res if n >= 0 else 1 / res`,
+            timeComplexity: "O(log n)",
+            spaceComplexity: "O(log n)",
+            keyIdea: "Exponentiation by Squaring (Recursion)",
+            analysis: "Calculating `x^n` by multiplying `x` `n` times is too slow (O(n)). A much faster approach is exponentiation by squaring. The core idea is that `x^n = (x^2)^(n/2)` if `n` is even, and `x^n = x * (x^2)^((n-1)/2)` if `n` is odd. This can be implemented recursively. We must also handle the case where `n` is negative, which is `1 / pow(x, abs(n))`."
+        },
+        {
+            id: "number_of_1_bits",
+            title: "20. Number of 1 Bits",
+            difficulty: "Easy",
+            link: "https://leetcode.com/problems/number-of-1-bits",
+            description: "Write a function that takes the binary representation of an unsigned integer and returns the number of '1' bits it has (also known as the Hamming weight).",
+            constraints: "The input must be a binary string of length 32.",
+            solution: `class Solution:
+    def hammingWeight(self, n: int) -> int:
+        count = 0
+        while n:
+            # This operation turns off the rightmost '1' bit
+            n &= (n - 1)
+            count += 1
+        return count`,
+            timeComplexity: "O(k)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Bit Manipulation",
+            analysis: "The key trick `n & (n - 1)` clears the least significant '1' bit of `n`. For example, if `n=12` (1100), `n-1=11` (1011), and `1100 & 1011 = 1000`. The loop continues until `n` becomes 0. The number of iterations is exactly the number of '1' bits in the original number. This is often more efficient than checking each of the 32 bits one by one. `k` is the number of set bits."
+        },
+        {
+            id: "reverse_integer",
+            title: "21. Reverse Integer",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/reverse-integer",
+            description: "Given a signed 32-bit integer `x`, reverse digits of an integer. If reversing causes the value to go outside the signed 32-bit integer range [-2^31, 2^31 - 1], then return 0.",
+            constraints: "-2^31 <= x <= 2^31 - 1.",
+            solution: `class Solution:
+    def reverse(self, x: int) -> int:
+        INT_MIN, INT_MAX = -2**31, 2**31 - 1
+        res = 0
+        sign = -1 if x < 0 else 1
+        x = abs(x)
+        
+        while x:
+            digit = x % 10
+            x //= 10
+            
+            # Check for overflow before multiplication
+            if res > INT_MAX // 10 or (res == INT_MAX // 10 and digit > INT_MAX % 10):
+                return 0
+                
+            res = res * 10 + digit
+            
+        return sign * res`,
+            timeComplexity: "O(log10(x))",
+            spaceComplexity: "O(1)",
+            keyIdea: "Math with Overflow Check",
+            analysis: "The integer is reversed by repeatedly getting the last digit using the modulo operator (`% 10`) and appending it to the result. The original number is shrunk using integer division (`// 10`). The most critical part is checking for potential overflow *before* the final multiplication `res * 10 + digit`. We compare `res` against `INT_MAX // 10` to see if the next multiplication will exceed the limit."
+        },
+        {
+            id: "basic_calculator_ii",
+            title: "22. Basic Calculator II",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/basic-calculator-ii",
+            description: "Given a string `s` which represents an expression, evaluate this expression and return its value. The expression string contains only non-negative integers, '+', '-', '*', '/' operators and empty spaces. Integer division should truncate toward zero.",
+            constraints: "1 <= s.length <= 3 * 10^5.",
+            solution: `class Solution:
+    def calculate(self, s: str) -> int:
+        num, stack, sign = 0, [], "+"
+        s += "+" # Append a sign to process the last number
+        
+        for char in s:
+            if char.isdigit():
+                num = num * 10 + int(char)
+            elif char in "+-*/":
+                if sign == "+":
+                    stack.append(num)
+                elif sign == "-":
+                    stack.append(-num)
+                elif sign == "*":
+                    stack.append(stack.pop() * num)
+                elif sign == "/":
+                    stack.append(int(stack.pop() / num))
+                num = 0
+                sign = char
+        
+        return sum(stack)`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Stack for Delayed Calculation",
+            analysis: "This approach avoids building a full AST by using a stack and processing based on operator precedence. We iterate through the string, building up the current `num`. When we hit an operator, it signals the end of the previous number. We then process the *previous* number with the *previous* operator. `*` and `/` have higher precedence, so when they are the previous operator, we can immediately calculate the result with the top of the stack. `+` and `-` have lower precedence, so we just push the number (or its negative) onto the stack. The final result is the sum of all numbers left in the stack."
+        },
+        {
+            id: "task_scheduler",
+            title: "23. Task Scheduler",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/task-scheduler",
+            description: "Given a characters array `tasks` representing tasks a CPU needs to do, and a non-negative integer `n` representing the cooldown period between two same tasks. Return the least number of units of time that the CPU will take to finish all given tasks.",
+            constraints: "1 <= task.length <= 10^4, n >= 0.",
+            solution: `from collections import Counter
+class Solution:
+    def leastInterval(self, tasks: list[str], n: int) -> int:
+        if n == 0:
+            return len(tasks)
+        
+        counts = Counter(tasks).values()
+        max_freq = max(counts)
+        num_max_freq_tasks = list(counts).count(max_freq)
+        
+        # Calculate time based on the most frequent task
+        # (max_freq - 1) full cycles of (task + n idles)
+        # plus the number of tasks that also have max_freq
+        time = (max_freq - 1) * (n + 1) + num_max_freq_tasks
+        
+        # The time cannot be less than the total number of tasks
+        return max(time, len(tasks))`,
+            timeComplexity: "O(N)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Greedy / Math",
+            analysis: "The schedule's length is determined by the most frequent task, as it creates the most idle slots. Let `max_freq` be the frequency of the most frequent task. This task creates `max_freq - 1` cycles of length `n+1` (one task + `n` idle slots). The last cycle only contains the tasks themselves. The total time is `(max_freq - 1) * (n + 1) + (number of tasks with max_freq)`. This formula calculates the minimum frame required. If other tasks can fill all the idle slots, the total time might just be the number of tasks. Therefore, the answer is the maximum of the calculated frame time and the total number of tasks."
+        },
+        {
+            id: "minimum_knight_moves",
+            title: "24. Minimum Knight Moves",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/minimum-knight-moves",
+            description: "In an infinite chess board, a knight is at `[0, 0]`. Given a target destination `[x, y]`, return the minimum number of moves to reach the target.",
+            constraints: "`|x| + |y| <= 300`",
+            solution: `from collections import deque
+class Solution:
+    def minKnightMoves(self, x: int, y: int) -> int:
+        q = deque([(0, 0, 0)]) # r, c, distance
+        visited = {(0, 0)}
+        # Take advantage of symmetry
+        x, y = abs(x), abs(y)
+        
+        while q:
+            r, c, dist = q.popleft()
+            
+            if (r, c) == (x, y):
+                return dist
+            
+            moves = [(1, 2), (2, 1), (1, -2), (2, -1),
+                     (-1, 2), (-2, 1), (-1, -2), (-2, -1)]
+            
+            for dr, dc in moves:
+                nr, nc = r + dr, c + dc
+                if (nr, nc) not in visited:
+                    visited.add((nr, nc))
+                    q.append((nr, nc, dist + 1))
+        return -1`,
+            timeComplexity: "O(x*y)",
+            spaceComplexity: "O(x*y)",
+            keyIdea: "Breadth-First Search (BFS)",
+            analysis: "This is a shortest path problem on an unweighted graph (the infinite chessboard), which is a perfect use case for BFS. We start a BFS from the origin `(0, 0)`. The state in the queue is `(row, col, distance)`. A `visited` set is crucial to prevent cycles and re-visiting states. The first time we reach the target `(x, y)`, we are guaranteed to have found the shortest path, so we can return the distance. The search space can be pruned by using symmetry (searching in the first quadrant for `abs(x), abs(y)`)."
+        },
+        {
+            id: "decode_string",
+            title: "25. Decode String",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/decode-string",
+            description: "Given an encoded string, return its decoded string. The encoding rule is: `k[encoded_string]`, where the `encoded_string` inside the square brackets is being repeated exactly `k` times. `k` is a positive integer.",
+            constraints: "1 <= s.length <= 30. `s` consists of lowercase English letters, digits, and square brackets '[]'.",
+            solution: `class Solution:
+    def decodeString(self, s: str) -> str:
+        stack = []
+        
+        for char in s:
+            if char != ']':
+                stack.append(char)
+            else:
+                # Pop until we find the '['
+                substr = ""
+                while stack[-1] != '[':
+                    substr = stack.pop() + substr
+                stack.pop() # Pop the '['
+                
+                # Pop the number k
+                k_str = ""
+                while stack and stack[-1].isdigit():
+                    k_str = stack.pop() + k_str
+                k = int(k_str)
+                
+                # Push the decoded substring back onto the stack
+                stack.append(substr * k)
+                
+        return "".join(stack)`,
+            timeComplexity: "O(max_k * L)",
+            spaceComplexity: "O(L)",
+            keyIdea: "Stack",
+            analysis: "The nested structure of the encoding suggests a stack-based solution. We iterate through the string. Characters and numbers are pushed onto the stack. When we encounter a closing bracket `]`, we know a pattern needs to be decoded. We pop from the stack to extract the substring inside the brackets and the preceding number `k`. We then multiply the substring by `k` and push the resulting decoded string back onto the stack. Finally, all parts on the stack are joined to form the final result. `L` is the length of the string."
+        },
+        {
+            id: "unique_paths",
+            title: "26. Unique Paths",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/unique-paths",
+            description: "There is a robot on an `m x n` grid. The robot is initially located at the top-left corner and tries to move to the bottom-right corner. The robot can only move either down or right at any point in time. Given the two integers `m` and `n`, return the number of possible unique paths.",
+            constraints: "1 <= m, n <= 100.",
+            solution: `class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        # Space optimized DP
+        row = [1] * n
+        
+        for i in range(m - 1):
+            new_row = [1] * n
+            for j in range(n - 2, -1, -1):
+                new_row[j] = new_row[j + 1] + row[j]
+            row = new_row
+            
+        return row[0]`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Dynamic Programming",
+            analysis: "Let `dp[i][j]` be the number of unique paths to reach cell `(i, j)`. Since the robot can only come from the cell above (`i-1, j`) or the cell to the left (`i, j-1`), the recurrence relation is `dp[i][j] = dp[i-1][j] + dp[i][j-1]`. The base cases are all cells in the first row and first column, which have only 1 way to be reached. This can be space-optimized from O(m*n) to O(n) because to compute the current row, we only need the values from the previous row."
+        },
+        {
+            id: "01_matrix",
+            title: "27. 01 Matrix",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/01-matrix",
+            description: "Given an `m x n` binary matrix `mat`, return the distance of the nearest `0` for each cell. The distance between two adjacent cells is 1.",
+            constraints: "1 <= m, n <= 10^4.",
+            solution: `from collections import deque
+class Solution:
+    def updateMatrix(self, mat: list[list[int]]) -> list[list[int]]:
+        ROWS, COLS = len(mat), len(mat[0])
+        q = deque()
+        visited = set()
+
+        for r in range(ROWS):
+            for c in range(COLS):
+                if mat[r][c] == 0:
+                    q.append((r, c))
+                    visited.add((r, c))
+        
+        dist = 0
+        while q:
+            for _ in range(len(q)):
+                r, c = q.popleft()
+                mat[r][c] = dist
+                
+                for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < ROWS and 0 <= nc < COLS and (nr, nc) not in visited:
+                        visited.add((nr,nc))
+                        q.append((nr, nc))
+            dist += 1
+            
+        return mat`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(m*n)",
+            keyIdea: "Multi-Source Breadth-First Search (BFS)",
+            analysis: "This problem asks for the shortest distance from each cell to the nearest 0. This is a perfect scenario for multi-source BFS. Instead of starting a separate BFS from each '1' cell, we can start a single BFS from all '0' cells simultaneously. Initialize a queue with all '0' cells and a visited set. The BFS then expands outwards in layers. The first time a '1' cell is visited, the distance (level of the BFS) is its shortest distance to a '0'."
+        },
+        {
+            id: "trapping_rain_water",
+            title: "1. Trapping Rain Water",
+            difficulty: "Hard",
+            link: "https://leetcode.com/problems/trapping-rain-water",
+            description: "Given `n` non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.",
+            constraints: "n == height.length, 1 <= n <= 2 * 10^4.",
+            solution: `class Solution:
+    def trap(self, height: list[int]) -> int:
+        if not height: return 0
+        
+        l, r = 0, len(height) - 1
+        leftMax, rightMax = height[l], height[r]
+        res = 0
+        
+        while l < r:
+            if leftMax < rightMax:
+                l += 1
+                leftMax = max(leftMax, height[l])
+                res += leftMax - height[l]
+            else:
+                r -= 1
+                rightMax = max(rightMax, height[r])
+                res += rightMax - height[r]
+                
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Two Pointers",
+            analysis: "The amount of water trapped above any bar is determined by the height of the shorter of the two highest walls to its left and right, minus its own height (`min(leftMax, rightMax) - height[i]`). An efficient two-pointer approach can solve this in O(1) space. We use `left` and `right` pointers, and track `leftMax` and `rightMax`. If `leftMax < rightMax`, we know the water level at the `left` pointer is determined by `leftMax`, so we can process it and move `left` inward. Conversely, if `rightMax <= leftMax`, the water level at `right` is determined by `rightMax`, so we process it and move `right` inward."
+        },
+        {
+            id: "median_two_sorted_arrays",
+            title: "2. Median of Two Sorted Arrays",
+            difficulty: "Hard",
+            link: "https://leetcode.com/problems/median-of-two-sorted-arrays",
+            description: "Given two sorted arrays `nums1` and `nums2` of size `m` and `n` respectively, return the median of the two sorted arrays. The overall run time complexity should be `O(log (m+n))`.",
+            constraints: "0 <= m, n <= 1000, m + n >= 1.",
+            solution: `class Solution:
+    def findMedianSortedArrays(self, nums1: list[int], nums2: list[int]) -> float:
+        A, B = nums1, nums2
+        total = len(nums1) + len(nums2)
+        half = total // 2
+        
+        if len(B) < len(A):
+            A, B = B, A
+        
+        l, r = 0, len(A) - 1
+        while True:
+            i = (l + r) // 2 # A's midpoint
+            j = half - i - 2 # B's midpoint
+            
+            Aleft = A[i] if i >= 0 else float("-infinity")
+            Aright = A[i + 1] if (i + 1) < len(A) else float("infinity")
+            Bleft = B[j] if j >= 0 else float("-infinity")
+            Bright = B[j + 1] if (j + 1) < len(B) else float("infinity")
+            
+            # partition is correct
+            if Aleft <= Bright and Bleft <= Aright:
+                if total % 2: # odd
+                    return min(Aright, Bright)
+                # even
+                return (max(Aleft, Bleft) + min(Aright, Bright)) / 2
+            elif Aleft > Bright:
+                r = i - 1
+            else:
+                l = i + 1`,
+            timeComplexity: "O(log(min(m,n)))",
+            spaceComplexity: "O(1)",
+            keyIdea: "Binary Search on Partition",
+            analysis: "The goal is to find a partition in both arrays such that all elements in the combined left partition are less than or equal to all elements in the combined right partition. We can perform a binary search on the smaller array to find the correct partition point. For a chosen partition `i` in the smaller array `A`, the corresponding partition `j` in array `B` is determined. We then check if the partition condition (`max(left_part) <= min(right_part)`) is met. If not, we adjust the binary search range until the correct partition is found, from which the median can be calculated."
+        },
+        {
+            id: "regex_matching",
+            title: "3. Regular Expression Matching",
+            difficulty: "Hard",
+            link: "https://leetcode.com/problems/regular-expression-matching",
+            description: "Given an input string `s` and a pattern `p`, implement regular expression matching with support for `.` and `*`. `.` matches any single character. `*` matches zero or more of the preceding element.",
+            constraints: "1 <= s.length <= 20, 1 <= p.length <= 30.",
+            solution: `class Solution:
+    def isMatch(self, s: str, p: str) -> bool:
+        # Top-down memoization DP
+        cache = {}
+
+        def dfs(i, j):
+            if (i, j) in cache:
+                return cache[(i, j)]
+            if i >= len(s) and j >= len(p):
+                return True
+            if j >= len(p):
+                return False
+
+            match = i < len(s) and (s[i] == p[j] or p[j] == ".")
+
+            if (j + 1) < len(p) and p[j + 1] == "*":
+                # Two choices for '*': 
+                # 1. Don't use '*' (match zero times)
+                # 2. Use '*' (match one or more times)
+                cache[(i, j)] = dfs(i, j + 2) or (match and dfs(i + 1, j))
+                return cache[(i, j)]
+            
+            if match:
+                cache[(i, j)] = dfs(i + 1, j + 1)
+                return cache[(i, j)]
+            
+            cache[(i, j)] = False
+            return False
+
+        return dfs(0, 0)`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(m*n)",
+            keyIdea: "Dynamic Programming (with Memoization)",
+            analysis: "This is a classic DP problem. Let `dp(i, j)` be whether the substring `s[i:]` matches the pattern `p[j:]`. The logic handles two main cases: 1) If the next character in the pattern `p[j+1]` is `*`: We can either ignore this part of the pattern (`p[j]*`) and see if the rest matches (`dp(i, j+2)`), OR if the current characters match, we can use the `*` to match one character of `s` and see if the rest of `s` matches the same `*` pattern (`dp(i+1, j)`). 2) If the next character is not `*`: The current characters must match, and we check the rest of the string and pattern (`dp(i+1, j+1)`). Memoization is crucial to avoid recomputing states."
+        }
+    ];
+
+    const navList = document.getElementById('nav-list');
+    const problemsContainer = document.getElementById('problems-container');
+    const overviewPanel = document.getElementById('overview-panel');
+    let complexityChart;
+
+    function displayProblem(problemId) {
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+
+        if (problemId === 'overview') {
+            const overviewLink = document.querySelector(`.nav-link[data-id="overview"]`);
+            if(overviewLink) overviewLink.classList.add('active');
+            overviewPanel.classList.add('active');
+        } else {
+            const problemToShow = document.getElementById(`problem-${problemId}`);
+            if (problemToShow) {
+                problemToShow.classList.add('active');
+                const navLink = document.querySelector(`.nav-link[data-id="${problemId}"]`);
+                if(navLink) navLink.classList.add('active');
+            }
+        }
+        document.getElementById('main-content').scrollTop = 0;
+    }
+
+    function setupTabs(problemId) {
+        const problemContainer = document.getElementById(`problem-${problemId}`);
+        const tabButtons = problemContainer.querySelectorAll('.tab-btn');
+        const tabContents = problemContainer.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.dataset.tab;
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tabContents.forEach(content => {
+                    if (content.dataset.tabContent === tabName) {
+                        content.classList.add('active');
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.remove('active');
+                        content.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    }
+    
+    function copyCode(event) {
+        const button = event.target;
+        const pre = button.nextElementSibling;
+        const code = pre.querySelector('code').innerText;
+
+        navigator.clipboard.writeText(code).then(() => {
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+                button.textContent = 'Copy Code';
+            }, 2000);
+        }).catch(err => {
+             const textArea = document.createElement('textarea');
+             textArea.value = code;
+             document.body.appendChild(textArea);
+             textArea.focus();
+             textArea.select();
+             try {
+                 document.execCommand('copy');
+                 button.textContent = 'Copied!';
+                 setTimeout(() => { button.textContent = 'Copy Code'; }, 2000);
+             } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+             }
+             document.body.removeChild(textArea);
+        });
+    }
+    
+    function renderChart(filteredData) {
+        const ctx = document.getElementById('complexityChart').getContext('2d');
+        
+        const complexityMap = {
+            "O(1)": 1, "O(k)": 1,
+            "O(log n)": 2, "O(log10(x))": 2, "O(log(min(m,n)))": 2,
+            "O(V+E)": 3, "O(m*n)": 3, "O(n)": 3,
+            "O(amount * len(coins))": 4, "O(target * len(nums))": 4,
+            "O(n log n)": 5, "O(n log k)": 5,
+        };
+        
+        const data = {
+            labels: filteredData.map(p => p.title.substring(p.title.indexOf('.') + 2)),
+            datasets: [{
+                label: 'Time Complexity (Relative Scale)',
+                data: filteredData.map(p => complexityMap[p.timeComplexity] || 0),
+                backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        };
+
+        const options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { display: false },
+                    grid: { drawOnChartArea: false, drawBorder: false },
+                    title: { display: true, text: 'Lower is Faster', font: { size: 14 } }
+                },
+                x: {
+                    ticks: {
+                        autoSkip: false, maxRotation: 90, minRotation: 70,
+                        callback: function(value) {
+                            const label = this.getLabelForValue(value);
+                            return label.length > 25 ? label.substring(0, 25) + '...' : label;
+                        }
+                    },
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        title: (context) => context[0].label,
+                        label: (context) => `Complexity: ${filteredData[context.dataIndex].timeComplexity}`
+                    },
+                    backgroundColor: '#1f2937', titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 12 }, padding: 10, cornerRadius: 6, displayColors: false
+                }
+            }
+        };
+        
+        if (complexityChart) {
+            complexityChart.destroy();
+        }
+        complexityChart = new Chart(ctx, { type: 'bar', data: data, options: options });
+    }
+
+    function initializeApp() {
+        const navListContainer = document.getElementById('nav-list');
+        navListContainer.innerHTML = '';
+        problemsContainer.innerHTML = '';
+
+        const overviewLink = document.createElement('a');
+        overviewLink.href = '#';
+        overviewLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link active';
+        overviewLink.textContent = '📊 Overview';
+        overviewLink.dataset.id = 'overview';
+        overviewLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            displayProblem('overview');
+        });
+        navListContainer.appendChild(overviewLink);
+
+        problemsData.forEach((problem, index) => {
+            const navLink = document.createElement('a');
+            navLink.href = '#';
+            navLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link';
+            navLink.textContent = problem.title;
+            navLink.dataset.id = problem.id;
+
+            navLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                displayProblem(problem.id);
+            });
+            navListContainer.appendChild(navLink);
+
+            const problemEl = document.createElement('div');
+            problemEl.className = 'content-panel';
+            problemEl.id = `problem-${problem.id}`;
+            const solutionHtml = problem.solution.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            problemEl.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-3xl font-bold text-gray-800">${problem.title}</h2>
+                    <a href="${problem.link}" target="_blank" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors">View on LeetCode</a>
+                </div>
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                        <button data-tab="problem" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active">Problem</button>
+                        <button data-tab="solution" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Solution</button>
+                        <button data-tab="analysis" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Analysis</button>
+                    </nav>
+                </div>
+
+                <div data-tab-content="problem" class="tab-content active space-y-4">
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                       <h3 class="font-semibold text-lg mb-2 text-gray-700">Description</h3>
+                       <p class="text-gray-600">${problem.description}</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-lg mb-2 text-gray-700">Constraints</h3>
+                        <p class="text-gray-600 font-mono text-sm">${problem.constraints}</p>
+                    </div>
+                </div>
+                <div data-tab-content="solution" class="tab-content hidden">
+                    <div class="relative">
+                        <button class="copy-btn absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded hover:bg-gray-500">Copy Code</button>
+                        <pre class="bg-gray-900 text-white p-4 rounded-lg shadow-sm text-sm overflow-x-auto"><code class="language-python">${solutionHtml}</code></pre>
+                    </div>
+                </div>
+                <div data-tab-content="analysis" class="tab-content hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Time Complexity</h3>
+                            <p class="text-lg font-mono text-indigo-600">${problem.timeComplexity}</p>
+                         </div>
+                         <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Space Complexity</h3>
+                            <p class="text-lg font-mono text-indigo-600">${problem.spaceComplexity}</p>
+                         </div>
+                          <div class="p-4 bg-white rounded-lg shadow-sm col-span-1 lg:col-span-1">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Key Idea</h3>
+                            <p class="text-gray-600">${problem.keyIdea}</p>
+                         </div>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm mt-4">
+                        <h3 class="font-semibold text-lg mb-2 text-gray-700">Insights</h3>
+                        <p class="text-gray-600 leading-relaxed">${problem.analysis}</p>
+                    </div>
+                </div>
+            `;
+            problemsContainer.appendChild(problemEl);
+            setupTabs(problem.id);
+        });
+        
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', copyCode);
+        });
+
+        const difficultyFilter = document.getElementById('difficulty-filter');
+        difficultyFilter.addEventListener('change', (e) => {
+            const selectedDifficulty = e.target.value;
+            const filtered = selectedDifficulty === 'all'
+                ? problemsData
+                : problemsData.filter(p => p.difficulty === selectedDifficulty);
+            renderChart(filtered);
+        });
+
+        renderChart(problemsData);
+        displayProblem('overview');
+    }
+
+    window.onload = initializeApp;
+
+</script>
+</body>
+</html>

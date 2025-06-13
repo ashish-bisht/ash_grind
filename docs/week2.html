@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive LeetCode Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A two-column SPA. The left column is a fixed navigation list of all LeetCode problems, allowing for quick jumps. The right column displays the detailed content for the selected problem. This content is organized into three tabs: "Problem", "Solution", and "Analysis" to prevent information overload and allow for focused study. An "Overview" section with a chart is included for high-level comparison. This structure was chosen to transform the linear report into a non-linear, user-driven study tool, which is more effective for interview prep. -->
+    <!-- Visualization & Content Choices: Report Info: Problem name, description, code, complexities, analysis. Goal: Organize, Compare, Inform. Viz/Presentation Method: The primary information is presented in structured HTML using a tabbed interface for clarity. Code is in styled <pre><code> blocks with a copy button. For the mandatory visualization requirement, a "Complexity Overview" bar chart (Chart.js/Canvas) is used. It maps qualitative time complexities (O(n), O(n^2), etc.) to a numerical scale to provide a visual summary of problem difficulties, which is a key aspect of the report. A dropdown allows filtering the chart by problem difficulty (Easy, Medium). Interaction: Click-based navigation via the side-list and content tabs. A button to copy code snippets enhances usability. Tooltips on the chart provide detailed complexity info on hover. Library/Method: Vanilla JS for logic, Tailwind for styling, Chart.js for visualization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fdfcf9; }
+        .nav-link.active { background-color: #e2e8f0; color: #1e293b; font-weight: 600; }
+        .tab-btn.active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff;}
+        .content-panel { display: none; }
+        .content-panel.active { display: block; }
+        .chart-container { position: relative; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; height: 60vh; max-height: 500px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="flex h-screen">
+        <aside id="nav-container" class="w-1/4 max-w-xs h-full bg-gray-50 border-r border-gray-200 flex flex-col">
+            <h1 class="text-lg font-bold p-4 border-b border-gray-200 text-gray-700">LeetCode Problems</h1>
+            <div id="nav-list" class="flex-grow overflow-y-auto"></div>
+        </aside>
+        
+        <main id="main-content" class="w-3/4 flex-grow p-6 md:p-8 lg:p-10 overflow-y-auto">
+            <div id="overview-panel" class="content-panel active">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Problems Overview</h2>
+                <p class="mb-6 text-gray-600">
+                    Welcome to your interactive LeetCode study guide. This application transforms the detailed report into a set of "flashcards" for efficient interview preparation. Select a problem from the list on the left to review its details. The overview below provides a visual comparison of the optimal time complexities for the problems, which can help you understand which algorithmic approaches are more efficient. You can filter the chart by difficulty.
+                </p>
+                 <div class="mb-6 flex items-center space-x-4">
+                    <label for="difficulty-filter" class="text-gray-700 font-medium">Filter by Difficulty:</label>
+                    <select id="difficulty-filter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5">
+                        <option value="all">All</option>
+                        <option value="Medium">Medium</option>
+                    </select>
+                </div>
+                <div class="p-4 bg-white rounded-xl shadow-md">
+                    <div class="chart-container">
+                        <canvas id="complexityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div id="problems-container"></div>
+        </main>
+    </div>
+
+<script>
+    const problemsData = [
+        {
+            id: "remove_nth_node",
+            title: "1. Remove Nth Node From End of List",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/remove-nth-node-from-end-of-list",
+            description: "Given the `head` of a linked list, remove the `n`th node from the end of the list and return its head.",
+            constraints: "The number of nodes in the list is `sz`. 1 <= `sz` <= 30. 0 <= Node.val <= 100. 1 <= `n` <= `sz`.",
+            solution: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -> Optional[ListNode]:
+        dummy = ListNode(0, head)
+        left = dummy
+        right = head
+        
+        # Move right pointer n steps ahead
+        for _ in range(n):
+            right = right.next
+        
+        # Move both pointers until right reaches the end
+        while right:
+            left = left.next
+            right = right.next
+        
+        # left is now at the node before the one to be removed
+        left.next = left.next.next
+        
+        return dummy.next`,
+            timeComplexity: "O(L)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Two Pointers (Fast & Slow)",
+            analysis: "The two-pointer approach avoids a two-pass solution. A `fast` pointer is advanced `n` nodes ahead of a `slow` pointer. Then, both pointers are moved forward together. When the `fast` pointer reaches the end of the list, the `slow` pointer will be positioned exactly before the node that needs to be removed. A dummy node is used to handle the edge case of removing the head of the list."
+        },
+        {
+            id: "swap_nodes_in_pairs",
+            title: "2. Swap Nodes in Pairs",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/swap-nodes-in-pairs",
+            description: "Given a linked list, swap every two adjacent nodes and return its head. You must solve the problem without modifying the values in the list's nodes.",
+            constraints: "The number of nodes in the list is in the range [0, 100].",
+            solution: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def swapPairs(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(0, head)
+        prev, curr = dummy, head
+
+        while curr and curr.next:
+            # Nodes to be swapped
+            second_node = curr.next
+            next_pair = second_node.next
+            
+            # Perform swap
+            second_node.next = curr
+            curr.next = next_pair
+            prev.next = second_node
+            
+            # Update pointers for next iteration
+            prev = curr
+            curr = next_pair
+            
+        return dummy.next`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Iterative Pointer Manipulation",
+            analysis: "An iterative solution is efficient and avoids recursion depth limits. A `dummy` node simplifies handling the head. We use three pointers: `prev` (points to the node before the pair), `curr` (the first node of the pair), and `second_node` (the second node). The core logic involves rewiring the `next` pointers to perform the swap and then advancing `prev` and `curr` to the start of the next pair."
+        },
+        {
+            id: "add_two_numbers",
+            title: "3. Add Two Numbers",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/add-two-numbers",
+            description: "You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order. Add the two numbers and return the sum as a linked list.",
+            constraints: "The number of nodes in each linked list is in the range [1, 100]. Each node contains a single digit.",
+            solution: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+        dummy_head = ListNode(0)
+        current = dummy_head
+        carry = 0
+        
+        while l1 or l2 or carry:
+            val1 = l1.val if l1 else 0
+            val2 = l2.val if l2 else 0
+            
+            total = val1 + val2 + carry
+            carry = total // 10
+            new_digit = total % 10
+            
+            current.next = ListNode(new_digit)
+            current = current.next
+            
+            l1 = l1.next if l1 else None
+            l2 = l2.next if l2 else None
+            
+        return dummy_head.next`,
+            timeComplexity: "O(max(n, m))",
+            spaceComplexity: "O(max(n, m))",
+            keyIdea: "Elementary Math Simulation",
+            analysis: "This problem simulates grade-school addition. A new result list is built while iterating through both input lists simultaneously. A `carry` variable tracks the carry-over from one digit place to the next. The loop continues as long as there are digits in either list or a final carry remains. A `dummy_head` simplifies list construction."
+        },
+        {
+            id: "rotate_list",
+            title: "4. Rotate List",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/rotate-list",
+            description: "Given the `head` of a linked list, rotate the list to the right by `k` places.",
+            constraints: "The number of nodes in the list is in the range [0, 500]. 0 <= k <= 2 * 10^9.",
+            solution: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def rotateRight(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+        if not head or not head.next or k == 0:
+            return head
+
+        # 1. Find the length and the last node
+        last, length = head, 1
+        while last.next:
+            last = last.next
+            length += 1
+
+        # 2. Connect tail to head to form a cycle
+        last.next = head
+        
+        # 3. Find the new tail: (length - k % length - 1)th node
+        k %= length
+        steps_to_new_tail = length - k - 1
+        new_tail = head
+        for _ in range(steps_to_new_tail):
+            new_tail = new_tail.next
+            
+        # 4. Find new head and break the cycle
+        new_head = new_tail.next
+        new_tail.next = None
+        
+        return new_head`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Circular List Manipulation",
+            analysis: "A very effective method is to first find the length of the list and make it circular by connecting the tail to the head. The new tail will be at position `length - (k % length) - 1`. Traverse to this new tail, the node after it becomes the new head, and the new tail's `next` pointer is set to `None` to break the circle."
+        },
+        {
+            id: "reorder_list",
+            title: "5. Reorder List",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/reorder-list",
+            description: "Reorder a singly linked list from L0→L1→…→Ln-1→Ln to L0→Ln→L1→Ln-1→L2→Ln-2→… in-place.",
+            constraints: "The number of nodes in the list is in the range [1, 5 * 10^4].",
+            solution: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def reorderList(self, head: Optional[ListNode]) -> None:
+        if not head or not head.next:
+            return
+
+        # 1. Find the middle of the list
+        slow, fast = head, head.next
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+
+        # 2. Reverse the second half
+        second = slow.next
+        prev = slow.next = None
+        while second:
+            tmp = second.next
+            second.next = prev
+            prev = second
+            second = tmp
+        
+        # 3. Merge the two halves
+        first, second = head, prev
+        while second:
+            tmp1, tmp2 = first.next, second.next
+            first.next = second
+            second.next = tmp1
+            first, second = tmp1, tmp2`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Find Mid, Reverse, Merge",
+            analysis: "This problem is solved in three steps. First, find the middle of the linked list using a slow and fast pointer. Second, reverse the second half of the list in-place. Third, merge the first half and the reversed second half by interleaving their nodes. This modifies the list in-place as required."
+        },
+        {
+            id: "odd_even_linked_list",
+            title: "6. Odd Even Linked List",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/odd-even-linked-list",
+            description: "Given the head of a singly linked list, group all the nodes with odd indices together followed by the nodes with even indices, and return the reordered list.",
+            constraints: "The number of nodes in the linked list is in the range [0, 10^4].",
+            solution: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def oddEvenList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head:
+            return None
+
+        odd = head
+        even = head.next
+        even_head = even
+
+        while even and even.next:
+            odd.next = even.next
+            odd = odd.next
+            even.next = odd.next
+            even = even.next
+
+        odd.next = even_head
+        return head`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Two-Pointer Segregation",
+            analysis: "Maintain two pointers, `odd` and `even`, to build two separate lists for the odd-indexed and even-indexed nodes. Traverse the original list, rewiring the `next` pointers to place nodes into their respective lists. Finally, connect the tail of the odd list to the head of the even list."
+        },
+        {
+            id: "sort_list",
+            title: "7. Sort List",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/sort-list",
+            description: "Given the `head` of a linked list, return the list after sorting it in ascending order. Follow up: Can you sort the linked list in O(n log n) time and O(1) memory?",
+            constraints: "The number of nodes in the list is in the range [0, 5 * 10^4].",
+            solution: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head or not head.next:
+            return head
+        
+        # Split list into two halves
+        left = head
+        right = self.getMid(head)
+        tmp = right.next
+        right.next = None
+        right = tmp
+        
+        left = self.sortList(left)
+        right = self.sortList(right)
+        
+        return self.merge(left, right)
+
+    def getMid(self, head):
+        slow, fast = head, head.next
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+        return slow
+        
+    def merge(self, list1, list2):
+        tail = dummy = ListNode()
+        while list1 and list2:
+            if list1.val < list2.val:
+                tail.next = list1
+                list1 = list1.next
+            else:
+                tail.next = list2
+                list2 = list2.next
+            tail = tail.next
+        if list1:
+            tail.next = list1
+        if list2:
+            tail.next = list2
+        return dummy.next`,
+            timeComplexity: "O(n log n)",
+            spaceComplexity: "O(log n)",
+            keyIdea: "Merge Sort",
+            analysis: "Merge sort is ideal for linked lists as it doesn't require random access. The list is recursively split into halves using a slow/fast pointer method to find the middle. These halves are sorted and then merged back together. The space complexity comes from the recursion stack depth, which is O(log n)."
+        },
+        {
+            id: "min_stack",
+            title: "8. Min Stack",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/min-stack",
+            description: "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.",
+            constraints: "At most 3 * 10^4 calls will be made to push, pop, top, and getMin.",
+            solution: `class MinStack:
+    def __init__(self):
+        self.stack = []
+        self.min_stack = []
+
+    def push(self, val: int) -> None:
+        self.stack.append(val)
+        min_val = min(val, self.min_stack[-1] if self.min_stack else val)
+        self.min_stack.append(min_val)
+
+    def pop(self) -> None:
+        self.stack.pop()
+        self.min_stack.pop()
+
+    def top(self) -> int:
+        return self.stack[-1]
+
+    def getMin(self) -> int:
+        return self.min_stack[-1]`,
+            timeComplexity: "O(1) for all operations",
+            spaceComplexity: "O(n)",
+            keyIdea: "Auxiliary Stack",
+            analysis: "Use two stacks. The main stack stores all elements. The auxiliary `min_stack` stores the minimum element seen so far at each level of the main stack. When a new element is pushed, we push `min(new_element, current_min)` onto `min_stack`. This ensures `getMin()` is always an O(1) lookup of the top of `min_stack`."
+        },
+        {
+            id: "eval_rpn",
+            title: "9. Evaluate Reverse Polish Notation",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/evaluate-reverse-polish-notation",
+            description: "Evaluate the value of an arithmetic expression in Reverse Polish Notation (RPN).",
+            constraints: "Valid operators are +, -, *, /. Each operand may be an integer or another expression.",
+            solution: `class Solution:
+    def evalRPN(self, tokens: list[str]) -> int:
+        stack = []
+        operators = {"+", "-", "*", "/"}
+
+        for token in tokens:
+            if token in operators:
+                b = stack.pop()
+                a = stack.pop()
+                if token == '+':
+                    stack.append(a + b)
+                elif token == '-':
+                    stack.append(a - b)
+                elif token == '*':
+                    stack.append(a * b)
+                else: # division
+                    stack.append(int(a / b))
+            else:
+                stack.append(int(token))
+        
+        return stack[0]`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Stack",
+            analysis: "RPN evaluation is a classic use case for a stack. Iterate through the tokens. If a token is a number, push it onto the stack. If it's an operator, pop the top two numbers from the stack, perform the operation, and push the result back onto the stack. The final result is the single number left on the stack."
+        },
+        {
+            id: "daily_temperatures",
+            title: "10. Daily Temperatures",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/daily-temperatures",
+            description: "Given an array `temperatures`, return an array `answer` where `answer[i]` is the number of days you have to wait after the `i`th day to get a warmer temperature.",
+            constraints: "1 <= temperatures.length <= 10^5.",
+            solution: `class Solution:
+    def dailyTemperatures(self, temperatures: list[int]) -> list[int]:
+        res = [0] * len(temperatures)
+        stack = [] # Stores pairs of [temperature, index]
+
+        for i, t in enumerate(temperatures):
+            while stack and t > stack[-1][0]:
+                stackT, stackInd = stack.pop()
+                res[stackInd] = i - stackInd
+            stack.append([t, i])
+        
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Monotonic Stack (Decreasing)",
+            analysis: "Use a monotonically decreasing stack to store temperatures and their indices. Iterate through the temperatures. If the current temperature is warmer than the temperature at the top of the stack, it means we've found the next warmer day for the index at the stack's top. Pop from the stack, calculate the day difference, and update the result array. Continue this until the stack top is warmer or the stack is empty. Then, push the current temperature and index onto the stack."
+        },
+        {
+            id: "asteroid_collision",
+            title: "11. Asteroid Collision",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/asteroid-collision",
+            description: "For each asteroid, the absolute value is its size, and the sign is its direction (positive right, negative left). Find out the state of the asteroids after all collisions.",
+            constraints: "2 <= asteroids.length <= 10^4. Each asteroid will be a non-zero integer in the range [-1000, 1000].",
+            solution: `class Solution:
+    def asteroidCollision(self, asteroids: list[int]) -> list[int]:
+        stack = []
+        for ast in asteroids:
+            # Collision condition
+            while stack and ast < 0 and stack[-1] > 0:
+                if stack[-1] == -ast: # Both explode
+                    stack.pop()
+                    break
+                elif stack[-1] < -ast: # Top of stack explodes
+                    stack.pop()
+                    continue
+                else: # New asteroid explodes
+                    break
+            else: # No collision
+                stack.append(ast)
+        return stack`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Stack Simulation",
+            analysis: "A stack is perfect for simulating collisions. Iterate through the asteroids. A collision can only occur if the top of the stack is moving right (positive) and the current asteroid is moving left (negative). Handle the three collision outcomes: both explode, stack top explodes, or current asteroid explodes. If no collision occurs, simply push the current asteroid onto the stack."
+        },
+        {
+            id: "combination_sum",
+            title: "12. Combination Sum",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/combination-sum",
+            description: "Given an array of distinct integers `candidates` and a `target` integer, return a list of all unique combinations of `candidates` where the chosen numbers sum to `target`. You may reuse numbers.",
+            constraints: "1 <= candidates.length <= 30. 1 <= candidates[i] <= 200.",
+            solution: `class Solution:
+    def combinationSum(self, candidates: list[int], target: int) -> list[list[int]]:
+        res = []
+
+        def dfs(i, cur, total):
+            if total == target:
+                res.append(cur.copy())
+                return
+            if i >= len(candidates) or total > target:
+                return
+
+            # Decision to include candidates[i]
+            cur.append(candidates[i])
+            dfs(i, cur, total + candidates[i])
+
+            # Decision NOT to include candidates[i] (and move to next candidate)
+            cur.pop()
+            dfs(i + 1, cur, total)
+        
+        dfs(0, [], 0)
+        return res`,
+            timeComplexity: "O(2^T)",
+            spaceComplexity: "O(T)",
+            keyIdea: "Backtracking / DFS",
+            analysis: "This is a classic backtracking problem. A recursive DFS function explores all possible combinations. The function branches into two decisions for each candidate: either include it in the current combination (and recurse, potentially using the same candidate again) or skip it and move to the next candidate. The recursion stops if the sum equals the target (a valid combination is found) or exceeds it."
+        },
+        {
+            id: "permutations",
+            title: "13. Permutations",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/permutations",
+            description: "Given an array `nums` of distinct integers, return all the possible permutations. You can return the answer in any order.",
+            constraints: "1 <= nums.length <= 6.",
+            solution: `class Solution:
+    def permute(self, nums: list[int]) -> list[list[int]]:
+        res = []
+        
+        def backtrack(start):
+            if start == len(nums):
+                res.append(nums[:])
+                return
+
+            for i in range(start, len(nums)):
+                # Place i-th integer first in the current permutation
+                nums[start], nums[i] = nums[i], nums[start]
+                # Use next integers to complete the permutation
+                backtrack(start + 1)
+                # backtrack
+                nums[start], nums[i] = nums[i], nums[start]
+        
+        backtrack(0)
+        return res`,
+            timeComplexity: "O(n * n!)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Backtracking / DFS",
+            analysis: "Backtracking generates all permutations. The recursive function `backtrack(start)` generates all permutations for the subarray `nums[start:]`. It iterates from `start` to `len(nums)-1`, swapping the `start` element with the `i`-th element. After fixing the `start` element, it recursively calls itself for `start + 1`. After the recursive call returns, it backtracks by swapping the elements back to their original positions to explore other possibilities."
+        },
+        {
+            id: "subsets",
+            title: "14. Subsets",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/subsets",
+            description: "Given an integer array `nums` of unique elements, return all possible subsets (the power set).",
+            constraints: "1 <= nums.length <= 10.",
+            solution: `class Solution:
+    def subsets(self, nums: list[int]) -> list[list[int]]:
+        res = []
+        subset = []
+
+        def dfs(i):
+            if i >= len(nums):
+                res.append(subset.copy())
+                return
+            
+            # Decision to include nums[i]
+            subset.append(nums[i])
+            dfs(i + 1)
+
+            # Decision NOT to include nums[i]
+            subset.pop()
+            dfs(i + 1)
+
+        dfs(0)
+        return res`,
+            timeComplexity: "O(n * 2^n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Backtracking / DFS",
+            analysis: "Subsets can be generated using backtracking. For each element in `nums`, we have two choices: either include it in the current subset or not. A recursive DFS function explores these choices. The function `dfs(i)` considers the element at index `i`. One branch includes `nums[i]` and recurses on `i+1`, while the other branch does not include `nums[i]` and also recurses on `i+1`. This generates all 2^n subsets."
+        },
+        {
+            id: "generate_parentheses",
+            title: "15. Generate Parentheses",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/generate-parentheses",
+            description: "Given `n` pairs of parentheses, write a function to generate all combinations of well-formed parentheses.",
+            constraints: "1 <= n <= 8.",
+            solution: `class Solution:
+    def generateParenthesis(self, n: int) -> list[str]:
+        stack = []
+        res = []
+        
+        def backtrack(open_count, closed_count):
+            if open_count == closed_count == n:
+                res.append("".join(stack))
+                return
+            
+            if open_count < n:
+                stack.append("(")
+                backtrack(open_count + 1, closed_count)
+                stack.pop()
+            
+            if closed_count < open_count:
+                stack.append(")")
+                backtrack(open_count, closed_count + 1)
+                stack.pop()
+        
+        backtrack(0, 0)
+        return res`,
+            timeComplexity: "O(4^n / sqrt(n))",
+            spaceComplexity: "O(n)",
+            keyIdea: "Backtracking with Constraints",
+            analysis: "This backtracking solution builds the string character by character. At each step, it decides whether to add an open or a close parenthesis. The decision is governed by two constraints: 1) We can add an open parenthesis only if we haven't used all `n` open parentheses. 2) We can add a close parenthesis only if the number of close parentheses is less than the number of open parentheses. This ensures the generated string is always well-formed."
+        },
+        {
+            id: "next_permutation",
+            title: "16. Next Permutation",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/next-permutation",
+            description: "Implement `next permutation`, which rearranges numbers into the lexicographically next greater permutation of numbers.",
+            constraints: "1 <= nums.length <= 100.",
+            solution: `class Solution:
+    def nextPermutation(self, nums: list[int]) -> None:
+        n = len(nums)
+        # 1. Find the first decreasing element from the right
+        i = n - 2
+        while i >= 0 and nums[i] >= nums[i + 1]:
+            i -= 1
+
+        # 2. Find element just larger than nums[i] to its right
+        if i >= 0:
+            j = n - 1
+            while nums[j] <= nums[i]:
+                j -= 1
+            nums[i], nums[j] = nums[j], nums[i]
+
+        # 3. Reverse the suffix starting at i + 1
+        left, right = i + 1, n - 1
+        while left < right:
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+            right -= 1`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Single-Pass Algorithm",
+            analysis: "This standard algorithm finds the next lexicographical permutation in three steps. First, find the longest non-increasing suffix from the right. The element just before this suffix is the 'pivot'. Second, find the smallest element in the suffix that is greater than the pivot and swap them. Third, reverse the suffix to make it as small as possible (i.e., sorted in increasing order)."
+        },
+        {
+            id: "valid_sudoku",
+            title: "17. Valid Sudoku",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/valid-sudoku",
+            description: "Determine if a 9x9 Sudoku board is valid. Only the filled cells need to be validated.",
+            constraints: "Board contains digits '1'-'9' and the character '.'.",
+            solution: `from collections import defaultdict
+
+class Solution:
+    def isValidSudoku(self, board: list[list[str]]) -> bool:
+        rows = defaultdict(set)
+        cols = defaultdict(set)
+        boxes = defaultdict(set) # key = (r//3, c//3)
+
+        for r in range(9):
+            for c in range(9):
+                if board[r][c] == ".":
+                    continue
+                
+                num = board[r][c]
+                box_key = (r // 3, c // 3)
+                
+                if (num in rows[r] or
+                    num in cols[c] or
+                    num in boxes[box_key]):
+                    return False
+                
+                rows[r].add(num)
+                cols[c].add(num)
+                boxes[box_key].add(num)
+        
+        return True`,
+            timeComplexity: "O(1)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Hashing with Sets",
+            analysis: "The board size is fixed at 9x9, so the time and space complexity are constant. The most efficient way to check for duplicates is to use hash sets. Three sets of data structures are maintained: one to track numbers in each row, one for each column, and one for each 3x3 sub-box. Traverse the board once, and for each number, check if it already exists in its corresponding row, column, and box set. If so, the board is invalid. Otherwise, add the number to the sets."
+        },
+        {
+            id: "gas_station",
+            title: "18. Gas Station",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/gas-station",
+            description: "Given two integer arrays `gas` and `cost`, return the starting gas station's index if you can travel around the circuit once in the clockwise direction, otherwise return -1.",
+            constraints: "gas.length == n. cost.length == n. 1 <= n <= 10^5.",
+            solution: `class Solution:
+    def canCompleteCircuit(self, gas: list[int], cost: list[int]) -> int:
+        if sum(gas) < sum(cost):
+            return -1
+
+        total = 0
+        start = 0
+        for i in range(len(gas)):
+            total += (gas[i] - cost[i])
+            
+            if total < 0:
+                total = 0
+                start = i + 1
+        
+        return start`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Greedy Single-Pass",
+            analysis: "First, if the total gas is less than the total cost, a solution is impossible. If a solution exists, it is unique. We can find it with a single greedy pass. Maintain a running `total` of `gas[i] - cost[i]`. If this `total` ever drops below zero, it means we cannot reach the current station `i` from the current `start` point. Therefore, the new potential start must be `i + 1`. The `start` variable tracks this potential starting point. Since a solution is guaranteed to exist (by the initial sum check), the final `start` value will be the correct answer."
+        },
+        {
+            id: "jump_game",
+            title: "19. Jump Game",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/jump-game",
+            description: "Given an array `nums`, you are initially at index 0. Each element `nums[i]` is your maximum jump length. Return `true` if you can reach the last index.",
+            constraints: "1 <= nums.length <= 10^4.",
+            solution: `class Solution:
+    def canJump(self, nums: list[int]) -> bool:
+        goal = len(nums) - 1
+
+        for i in range(len(nums) - 2, -1, -1):
+            if i + nums[i] >= goal:
+                goal = i
+        
+        return goal == 0`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Greedy (Working Backwards)",
+            analysis: "A very efficient greedy approach is to work backward from the end of the array. The `goal` is initially the last index. We iterate from the second-to-last index backwards. At each position `i`, we check if we can reach the current `goal` from `i` (i.e., `i + nums[i] >= goal`). If we can, it means this position `i` becomes our new, closer `goal`. We continue this process. If the `goal` ultimately becomes 0, it means the start index can reach the end."
+        },
+        {
+            id: "largest_number",
+            title: "20. Largest Number",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/largest-number",
+            description: "Given a list of non-negative integers `nums`, arrange them such that they form the largest possible number.",
+            constraints: "1 <= nums.length <= 100.",
+            solution: `from functools import cmp_to_key
+
+class Solution:
+    def largestNumber(self, nums: list[int]) -> str:
+        
+        def compare(n1, n2):
+            if n1 + n2 > n2 + n1:
+                return -1 # n1 should come before n2
+            else:
+                return 1 # n2 should come before n1
+        
+        nums_str = [str(n) for n in nums]
+        nums_str.sort(key=cmp_to_key(compare))
+        
+        result = "".join(nums_str)
+        
+        return "0" if result[0] == '0' else result`,
+            timeComplexity: "O(n log n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Custom Sort Comparator",
+            analysis: "This is a sorting problem with a custom comparison rule. To decide which of two numbers, `a` and `b`, should come first, we compare the concatenated strings `a+b` and `b+a`. If `a+b` is larger, `a` should come before `b`. After converting all numbers to strings, we sort them using this custom comparator. Finally, join the sorted strings. An edge case is if the largest number is '0' (from an input like [0, 0]), in which case we should return '0'."
+        },
+        {
+            id: "random_pick_weight",
+            title: "21. Random Pick with Weight",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/random-pick-with-weight",
+            description: "Given an array of positive integer weights `w`, implement a function `pickIndex` which randomly picks an index in proportion to its weight.",
+            constraints: "1 <= w.length <= 10^4.",
+            solution: `import random
+import bisect
+
+class Solution:
+    def __init__(self, w: list[int]):
+        self.prefix_sums = []
+        prefix_sum = 0
+        for weight in w:
+            prefix_sum += weight
+            self.prefix_sums.append(prefix_sum)
+        self.total_sum = prefix_sum
+
+    def pickIndex(self) -> int:
+        target = random.uniform(0, self.total_sum)
+        # Find the first prefix_sum that is >= target
+        return bisect.bisect_left(self.prefix_sums, target)`,
+            timeComplexity: "O(n) for init, O(log n) for pickIndex",
+            spaceComplexity: "O(n)",
+            keyIdea: "Prefix Sums + Binary Search",
+            analysis: "This problem can be solved by creating a prefix sum array. Each element `prefix_sums[i]` represents the cumulative weight up to index `i`. Then, generate a random number between 0 and the total sum. The index to pick is the first index in the prefix sum array where the value is greater than the random number. This can be found efficiently using binary search (or Python's `bisect_left`)."
+        },
+        {
+            id: "insert_delete_getrandom",
+            title: "22. Insert Delete GetRandom O(1)",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/insert-delete-getrandom-o1",
+            description: "Implement the RandomizedSet class which supports `insert`, `remove`, and `getRandom` in average O(1) time.",
+            constraints: "At most 2 * 10^5 calls will be made to the functions.",
+            solution: `import random
+
+class RandomizedSet:
+    def __init__(self):
+        self.data_map = {} # val -> index in list
+        self.data_list = [] # list of values
+
+    def insert(self, val: int) -> bool:
+        if val in self.data_map:
+            return False
+        self.data_map[val] = len(self.data_list)
+        self.data_list.append(val)
+        return True
+
+    def remove(self, val: int) -> bool:
+        if val not in self.data_map:
+            return False
+        
+        # O(1) remove: swap with last element
+        last_val = self.data_list[-1]
+        idx_to_remove = self.data_map[val]
+        
+        self.data_list[idx_to_remove] = last_val
+        self.data_map[last_val] = idx_to_remove
+        
+        self.data_list.pop()
+        del self.data_map[val]
+        return True
+
+    def getRandom(self) -> int:
+        return random.choice(self.data_list)`,
+            timeComplexity: "O(1) average for all operations",
+            spaceComplexity: "O(n)",
+            keyIdea: "Array + Hash Map",
+            analysis: "The key to achieving O(1) for all operations is to combine an array (for O(1) `getRandom`) and a hash map (for O(1) `insert` and `remove` lookups). The map stores the value and its index in the array. The trick for O(1) removal is to swap the element to be removed with the last element in the array, update the last element's index in the map, and then pop from the end of the array."
+        },
+        {
+            id: "max_product_subarray",
+            title: "23. Maximum Product Subarray",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/maximum-product-subarray",
+            description: "Given an integer array `nums`, find a contiguous non-empty subarray with the largest product, and return the product.",
+            constraints: "1 <= nums.length <= 2 * 10^4.",
+            solution: `class Solution:
+    def maxProduct(self, nums: list[int]) -> int:
+        res = max(nums)
+        curMin, curMax = 1, 1
+
+        for n in nums:
+            if n == 0:
+                curMin, curMax = 1, 1
+                continue
+            
+            tmp = curMax * n
+            curMax = max(n * curMax, n * curMin, n)
+            curMin = min(tmp, n * curMin, n)
+            res = max(res, curMax)
+        
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Dynamic Programming (Kadane's variation)",
+            analysis: "This is a variation of Kadane's algorithm for maximum sum. Because negative numbers can flip the max product to a min product (and vice-versa), we must track both the maximum and minimum product ending at the current position. For each number `n`, the new `curMax` is the maximum of `n`, `n * curMax`, and `n * curMin`. Similarly for the new `curMin`."
+        },
+        {
+            id: "merge_intervals",
+            title: "24. Merge Intervals",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/merge-intervals",
+            description: "Given an array of `intervals`, merge all overlapping intervals, and return an array of the non-overlapping intervals.",
+            constraints: "1 <= intervals.length <= 10^4.",
+            solution: `class Solution:
+    def merge(self, intervals: list[list[int]]) -> list[list[int]]:
+        if not intervals:
+            return []
+        
+        intervals.sort(key=lambda x: x[0])
+        
+        merged = [intervals[0]]
+        for i in range(1, len(intervals)):
+            last_merged = merged[-1]
+            current = intervals[i]
+            
+            # Check for overlap
+            if current[0] <= last_merged[1]:
+                last_merged[1] = max(last_merged[1], current[1])
+            else:
+                merged.append(current)
+                
+        return merged`,
+            timeComplexity: "O(n log n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Sort and Merge",
+            analysis: "The key is to first sort the intervals based on their start times. Then, iterate through the sorted intervals. Maintain a `merged` list. If the current interval overlaps with the last interval in `merged`, update the end of the last interval. If there's no overlap, simply add the current interval to the `merged` list."
+        },
+        {
+            id: "insert_interval",
+            title: "25. Insert Interval",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/insert-interval",
+            description: "You are given an array of non-overlapping intervals `intervals` sorted by start time, and a `newInterval`. Insert `newInterval` into `intervals` such that `intervals` is still sorted and non-overlapping.",
+            constraints: "0 <= intervals.length <= 10^4.",
+            solution: `class Solution:
+    def insert(self, intervals: list[list[int]], newInterval: list[int]) -> list[list[int]]:
+        res = []
+        i = 0
+        n = len(intervals)
+
+        # 1. Add all intervals that come before newInterval
+        while i < n and intervals[i][1] < newInterval[0]:
+            res.append(intervals[i])
+            i += 1
+            
+        # 2. Merge all overlapping intervals
+        while i < n and intervals[i][0] <= newInterval[1]:
+            newInterval[0] = min(newInterval[0], intervals[i][0])
+            newInterval[1] = max(newInterval[1], intervals[i][1])
+            i += 1
+        res.append(newInterval)
+        
+        # 3. Add all remaining intervals
+        while i < n:
+            res.append(intervals[i])
+            i += 1
+            
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Linear Scan and Merge",
+            analysis: "Since the initial list is sorted, we don't need to re-sort. We can solve this in a single pass. The logic is in three parts: 1) Add all intervals that end before the new interval starts. 2) Merge the new interval with all subsequent overlapping intervals. 3) Add all remaining intervals that start after the (merged) new interval ends."
+        },
+        {
+            id: "non_overlapping_intervals",
+            title: "26. Non-overlapping Intervals",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/non-overlapping-intervals",
+            description: "Given an array of intervals, return the minimum number of intervals you need to remove to make the rest of the intervals non-overlapping.",
+            constraints: "1 <= intervals.length <= 10^5.",
+            solution: `class Solution:
+    def eraseOverlapIntervals(self, intervals: list[list[int]]) -> int:
+        if not intervals:
+            return 0
+        
+        # Sort by end time
+        intervals.sort(key=lambda x: x[1])
+        
+        removals = 0
+        last_end = intervals[0][1]
+        
+        for i in range(1, len(intervals)):
+            # If the current interval starts before the last one ends, it's an overlap
+            if intervals[i][0] < last_end:
+                removals += 1
+            else:
+                # No overlap, update last_end to the current interval's end
+                last_end = intervals[i][1]
+                
+        return removals`,
+            timeComplexity: "O(n log n)",
+            spaceComplexity: "O(1) or O(n) for sort",
+            keyIdea: "Greedy (Sort by End Time)",
+            analysis: "This is a classic greedy problem. Sorting by start time doesn't work, but sorting by end time does. After sorting intervals by their end points, iterate through them. Keep track of the end time of the last non-overlapping interval found. If the current interval's start time is less than this end time, it overlaps and must be 'removed'. Otherwise, it doesn't overlap, and we update our end time to the end of this current interval. This greedy choice always keeps the interval that finishes earliest, maximizing the remaining room for other intervals."
+        }
+    ];
+
+    const navList = document.getElementById('nav-list');
+    const problemsContainer = document.getElementById('problems-container');
+    const overviewPanel = document.getElementById('overview-panel');
+    let complexityChart;
+
+    function displayProblem(problemId) {
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+
+        if (problemId === 'overview') {
+            document.querySelector(`.nav-link[data-id="overview"]`).classList.add('active');
+            overviewPanel.classList.add('active');
+        } else {
+            const problemToShow = document.getElementById(`problem-${problemId}`);
+            if (problemToShow) {
+                problemToShow.classList.add('active');
+                document.querySelector(`.nav-link[data-id="${problemId}"]`).classList.add('active');
+            }
+        }
+        document.getElementById('main-content').scrollTop = 0;
+    }
+
+    function setupTabs(problemId) {
+        const problemContainer = document.getElementById(`problem-${problemId}`);
+        const tabButtons = problemContainer.querySelectorAll('.tab-btn');
+        const tabContents = problemContainer.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.dataset.tab;
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tabContents.forEach(content => {
+                    if (content.dataset.tabContent === tabName) {
+                        content.classList.add('active');
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.remove('active');
+                        content.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    }
+    
+    function copyCode(event) {
+        const button = event.target;
+        const pre = button.nextElementSibling;
+        const code = pre.querySelector('code').innerText;
+
+        navigator.clipboard.writeText(code).then(() => {
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+                button.textContent = 'Copy Code';
+            }, 2000);
+        }).catch(err => {
+             const textArea = document.createElement('textarea');
+             textArea.value = code;
+             document.body.appendChild(textArea);
+             textArea.focus();
+             textArea.select();
+             try {
+                 document.execCommand('copy');
+                 button.textContent = 'Copied!';
+                 setTimeout(() => { button.textContent = 'Copy Code'; }, 2000);
+             } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+             }
+             document.body.removeChild(textArea);
+        });
+    }
+    
+    function renderChart(filteredData) {
+        const ctx = document.getElementById('complexityChart').getContext('2d');
+        
+        const complexityMap = {
+            "O(1)": 1, "O(log n)": 2, "O(L)": 3, "O(n)": 4, "O(N)": 4, "O(T)": 4,
+            "O(n log n)": 5, "O(N log N)": 5,
+            "O(n^2)": 6,
+            "O(2^n)": 7, "O(n * 2^n)": 8,
+            "O(n!)": 9, "O(n * n!)": 10,
+            "O(2^T)": 7, "O(4^n / sqrt(n))": 8,
+            "O(max(n, m))": 4,
+            "O(1) for all operations": 1,
+            "O(n) for init, O(log n) for pickIndex": 2,
+            "O(1) average for all operations": 1,
+        };
+        
+        const data = {
+            labels: filteredData.map(p => p.title.substring(p.title.indexOf('.') + 2)),
+            datasets: [{
+                label: 'Time Complexity (Relative Scale)',
+                data: filteredData.map(p => complexityMap[p.timeComplexity] || 0),
+                backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        };
+
+        const options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                       display: false
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                        drawBorder: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'Lower is Faster',
+                        font: { size: 14 }
+                    }
+                },
+                x: {
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 90,
+                        minRotation: 70,
+                         callback: function(value, index, values) {
+                            const label = this.getLabelForValue(value);
+                            return label.length > 25 ? label.substring(0, 25) + '...' : label;
+                        }
+                    },
+                    grid: {
+                        display: false,
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const originalProblem = filteredData[context.dataIndex];
+                            return `Complexity: ${originalProblem.timeComplexity}`;
+                        }
+                    },
+                    backgroundColor: '#1f2937',
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    cornerRadius: 6,
+                    displayColors: false,
+                }
+            }
+        };
+        
+        if (complexityChart) {
+            complexityChart.destroy();
+        }
+        complexityChart = new Chart(ctx, { type: 'bar', data: data, options: options });
+    }
+
+    function initializeApp() {
+        const navListContainer = document.getElementById('nav-list');
+        navListContainer.innerHTML = '';
+        problemsContainer.innerHTML = '';
+
+        const overviewLink = document.createElement('a');
+        overviewLink.href = '#';
+        overviewLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link active';
+        overviewLink.textContent = '📊 Overview';
+        overviewLink.dataset.id = 'overview';
+        overviewLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            displayProblem('overview');
+        });
+        navListContainer.appendChild(overviewLink);
+
+        problemsData.forEach((problem, index) => {
+            const navLink = document.createElement('a');
+            navLink.href = '#';
+            navLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link';
+            navLink.textContent = problem.title;
+            navLink.dataset.id = problem.id;
+
+            navLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                displayProblem(problem.id);
+            });
+            navListContainer.appendChild(navLink);
+
+            const problemEl = document.createElement('div');
+            problemEl.className = 'content-panel';
+            problemEl.id = `problem-${problem.id}`;
+            const solutionHtml = problem.solution.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            problemEl.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-3xl font-bold text-gray-800">${problem.title}</h2>
+                    <a href="${problem.link}" target="_blank" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors">View on LeetCode</a>
+                </div>
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                        <button data-tab="problem" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active">Problem</button>
+                        <button data-tab="solution" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Solution</button>
+                        <button data-tab="analysis" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Analysis</button>
+                    </nav>
+                </div>
+
+                <div data-tab-content="problem" class="tab-content active space-y-4">
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                       <h3 class="font-semibold text-lg mb-2 text-gray-700">Description</h3>
+                       <p class="text-gray-600">${problem.description}</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-lg mb-2 text-gray-700">Constraints</h3>
+                        <p class="text-gray-600 font-mono text-sm">${problem.constraints}</p>
+                    </div>
+                </div>
+                <div data-tab-content="solution" class="tab-content hidden">
+                    <div class="relative">
+                        <button class="copy-btn absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded hover:bg-gray-500">Copy Code</button>
+                        <pre class="bg-gray-900 text-white p-4 rounded-lg shadow-sm text-sm overflow-x-auto"><code class="language-python">${solutionHtml}</code></pre>
+                    </div>
+                </div>
+                <div data-tab-content="analysis" class="tab-content hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Time Complexity</h3>
+                            <p class="text-lg font-mono text-indigo-600">${problem.timeComplexity}</p>
+                         </div>
+                         <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Space Complexity</h3>
+                            <p class="text-lg font-mono text-indigo-600">${problem.spaceComplexity}</p>
+                         </div>
+                          <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Key Idea</h3>
+                            <p class="text-gray-600">${problem.keyIdea}</p>
+                         </div>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-lg mb-2 text-gray-700">Insights</h3>
+                        <p class="text-gray-600 leading-relaxed">${problem.analysis}</p>
+                    </div>
+                </div>
+            `;
+            problemsContainer.appendChild(problemEl);
+            setupTabs(problem.id);
+        });
+        
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', copyCode);
+        });
+
+        const difficultyFilter = document.getElementById('difficulty-filter');
+        difficultyFilter.addEventListener('change', (e) => {
+            const selectedDifficulty = e.target.value;
+            const filtered = selectedDifficulty === 'all'
+                ? problemsData
+                : problemsData.filter(p => p.difficulty === selectedDifficulty);
+            renderChart(filtered);
+        });
+
+        renderChart(problemsData);
+        displayProblem('overview');
+    }
+
+    window.onload = initializeApp;
+
+</script>
+</body>
+</html>

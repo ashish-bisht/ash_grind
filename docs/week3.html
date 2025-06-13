@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive LeetCode Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A two-column SPA. The left column is a fixed navigation list of all LeetCode problems, allowing for quick jumps. The right column displays the detailed content for the selected problem. This content is organized into three tabs: "Problem", "Solution", and "Analysis" to prevent information overload and allow for focused study. An "Overview" section with a chart is included for high-level comparison. This structure was chosen to transform the linear report into a non-linear, user-driven study tool, which is more effective for interview prep. -->
+    <!-- Visualization & Content Choices: Report Info: Problem name, description, code, complexities, analysis. Goal: Organize, Compare, Inform. Viz/Presentation Method: The primary information is presented in structured HTML using a tabbed interface for clarity. Code is in styled <pre><code> blocks with a copy button. For the mandatory visualization requirement, a "Complexity Overview" bar chart (Chart.js/Canvas) is used. It maps qualitative time complexities (O(n), O(n^2), etc.) to a numerical scale to provide a visual summary of problem difficulties, which is a key aspect of the report. A dropdown allows filtering the chart by problem difficulty (Easy, Medium). Interaction: Click-based navigation via the side-list and content tabs. A button to copy code snippets enhances usability. Tooltips on the chart provide detailed complexity info on hover. Library/Method: Vanilla JS for logic, Tailwind for styling, Chart.js for visualization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fdfcf9; }
+        .nav-link.active { background-color: #e2e8f0; color: #1e293b; font-weight: 600; }
+        .tab-btn.active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff;}
+        .content-panel { display: none; }
+        .content-panel.active { display: block; }
+        .chart-container { position: relative; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; height: 60vh; max-height: 500px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="flex h-screen">
+        <aside id="nav-container" class="w-1/4 max-w-xs h-full bg-gray-50 border-r border-gray-200 flex flex-col">
+            <h1 class="text-lg font-bold p-4 border-b border-gray-200 text-gray-700">LeetCode Problems</h1>
+            <div id="nav-list" class="flex-grow overflow-y-auto"></div>
+        </aside>
+        
+        <main id="main-content" class="w-3/4 flex-grow p-6 md:p-8 lg:p-10 overflow-y-auto">
+            <div id="overview-panel" class="content-panel active">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Problems Overview</h2>
+                <p class="mb-6 text-gray-600">
+                    Welcome to your interactive LeetCode study guide. This application transforms the detailed report into a set of "flashcards" for efficient interview preparation. Select a problem from the list on the left to review its details. The overview below provides a visual comparison of the optimal time complexities for the problems, which can help you understand which algorithmic approaches are more efficient. You can filter the chart by difficulty.
+                </p>
+                 <div class="mb-6 flex items-center space-x-4">
+                    <label for="difficulty-filter" class="text-gray-700 font-medium">Filter by Difficulty:</label>
+                    <select id="difficulty-filter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5">
+                        <option value="all">All</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                    </select>
+                </div>
+                <div class="p-4 bg-white rounded-xl shadow-md">
+                    <div class="chart-container">
+                        <canvas id="complexityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div id="problems-container"></div>
+        </main>
+    </div>
+
+<script>
+    const problemsData = [
+        {
+            id: "level_order_traversal",
+            title: "1. Binary Tree Level Order Traversal",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/binary-tree-level-order-traversal",
+            description: "Given the `root` of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).",
+            constraints: "The number of nodes in the tree is in the range [0, 2000].",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+from collections import deque
+
+class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -> list[list[int]]:
+        if not root:
+            return []
+            
+        res = []
+        q = deque([root])
+        
+        while q:
+            level_size = len(q)
+            current_level = []
+            for _ in range(level_size):
+                node = q.popleft()
+                current_level.append(node.val)
+                if node.left:
+                    q.append(node.left)
+                if node.right:
+                    q.append(node.right)
+            res.append(current_level)
+            
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(w)",
+            keyIdea: "Breadth-First Search (BFS)",
+            analysis: "Level order traversal is a classic application of BFS. A queue is used to keep track of nodes to visit. The algorithm processes the tree level by level. In each iteration of the main loop, it processes all nodes currently in the queue (which constitute one full level). Their children are then added to the queue to be processed in the next iteration. `w` is the maximum width of the tree."
+        },
+        {
+            id: "zigzag_level_order",
+            title: "2. Binary Tree Zigzag Level Order Traversal",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal",
+            description: "Given the `root` of a binary tree, return the zigzag level order traversal of its nodes' values (i.e., from left to right, then right to left for the next level and alternate between).",
+            constraints: "The number of nodes in the tree is in the range [0, 2000].",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+from collections import deque
+
+class Solution:
+    def zigzagLevelOrder(self, root: Optional[TreeNode]) -> list[list[int]]:
+        if not root:
+            return []
+            
+        res = []
+        q = deque([root])
+        left_to_right = True
+        
+        while q:
+            level_size = len(q)
+            current_level = deque()
+            for _ in range(level_size):
+                node = q.popleft()
+                if left_to_right:
+                    current_level.append(node.val)
+                else:
+                    current_level.appendleft(node.val)
+
+                if node.left: q.append(node.left)
+                if node.right: q.append(node.right)
+            
+            res.append(list(current_level))
+            left_to_right = not left_to_right
+            
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(w)",
+            keyIdea: "BFS with Direction Toggle",
+            analysis: "This is a variation of level order traversal. A boolean flag `left_to_right` is used to determine the direction of insertion for the current level. Instead of a simple list, a `deque` is used for `current_level` to allow for efficient O(1) appends to both the left and right ends. After each level is processed, the flag is toggled."
+        },
+        {
+            id: "binary_tree_right_side_view",
+            title: "3. Binary Tree Right Side View",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/binary-tree-right-side-view",
+            description: "Given the `root` of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.",
+            constraints: "The number of nodes in the tree is in the range [0, 100].",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+from collections import deque
+
+class Solution:
+    def rightSideView(self, root: Optional[TreeNode]) -> list[int]:
+        if not root:
+            return []
+        
+        res = []
+        q = deque([root])
+        
+        while q:
+            level_size = len(q)
+            # The last node in the queue for the current level is the rightmost one
+            res.append(q[-1].val)
+            
+            for _ in range(level_size):
+                node = q.popleft()
+                if node.left:
+                    q.append(node.left)
+                if node.right:
+                    q.append(node.right)
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(w)",
+            keyIdea: "BFS - Rightmost Node per Level",
+            analysis: "Using BFS, we can traverse the tree level by level. For each level, the last node to be processed will be the rightmost node. We can identify this node simply by taking the value of the last element in the queue (`q[-1]`) at the beginning of each level's processing loop. This gives us the right side view."
+        },
+        {
+            id: "validate_bst",
+            title: "4. Validate Binary Search Tree",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/validate-binary-search-tree",
+            description: "Given the `root` of a binary tree, determine if it is a valid binary search tree (BST).",
+            constraints: "A valid BST is defined as: The left subtree of a node contains only nodes with keys less than the node's key. The right subtree only contains nodes with keys greater than the node's key. Both the left and right subtrees must also be BSTs.",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def isValidBST(self, root: Optional[TreeNode]) -> bool:
+        
+        def validate(node, low, high):
+            if not node:
+                return True
+            
+            if not (low < node.val < high):
+                return False
+            
+            return (validate(node.left, low, node.val) and
+                    validate(node.right, node.val, high))
+            
+        return validate(root, float('-inf'), float('inf'))`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(h)",
+            keyIdea: "DFS with Valid Range",
+            analysis: "A simple check that `node.left.val < node.val` and `node.right.val > node.val` is insufficient. The entire left subtree must be less than the node's value, and the entire right subtree must be greater. This is solved by a recursive DFS that passes down a valid range `(low, high)` for each node. A node is valid only if its value falls within this range. The range is then narrowed for its children."
+        },
+        {
+            id: "kth_smallest_bst",
+            title: "5. Kth Smallest Element in a BST",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/kth-smallest-element-in-a-bst",
+            description: "Given the `root` of a binary search tree and an integer `k`, return the `k`th smallest value (1-indexed) of all the values of the nodes in the tree.",
+            constraints: "The number of nodes in the tree is n. 1 <= k <= n <= 10^4.",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:
+        stack = []
+        curr = root
+        
+        while curr or stack:
+            while curr:
+                stack.append(curr)
+                curr = curr.left
+            
+            curr = stack.pop()
+            k -= 1
+            if k == 0:
+                return curr.val
+            
+            curr = curr.right`,
+            timeComplexity: "O(H + k)",
+            spaceComplexity: "O(H)",
+            keyIdea: "Iterative In-order Traversal",
+            analysis: "The in-order traversal of a BST visits nodes in sorted order. We can perform an iterative in-order traversal using a stack. We decrement `k` for each node visited. When `k` reaches 0, the current node's value is the kth smallest element. This approach is efficient because it stops as soon as the kth element is found. `H` is the height of the tree."
+        },
+        {
+            id: "inorder_successor_bst",
+            title: "6. Inorder Successor in BST",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/inorder-successor-in-bst",
+            description: "Given the `root` of a binary search tree and a node `p` in it, return the in-order successor of that node in the BST. If the given node has no in-order successor, return `null`.",
+            constraints: "The number of nodes in the tree is in the range [2, 10^5]. `p` is a valid node in the BST.",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+
+class Solution:
+    def inorderSuccessor(self, root: TreeNode, p: TreeNode) -> Optional[TreeNode]:
+        successor = None
+        
+        while root:
+            if p.val >= root.val:
+                root = root.right
+            else:
+                successor = root
+                root = root.left
+        return successor`,
+            timeComplexity: "O(H)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Binary Search",
+            analysis: "If node `p` has a right subtree, its successor is the leftmost node in that subtree. If `p` has no right subtree, its successor is one of its ancestors. We can find this by traversing from the root. If the current node's value is greater than `p`'s value, this node is a potential successor, so we store it and move to the left subtree to find a potentially closer successor. If the current node's value is less than or equal to `p`'s, the successor must be in the right subtree."
+        },
+        {
+            id: "lca_binary_tree",
+            title: "7. Lowest Common Ancestor of a Binary Tree",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree",
+            description: "Given a binary tree, find the lowest common ancestor (LCA) of two given nodes in the tree.",
+            constraints: "The number of nodes in the tree is in the range [2, 10^5]. All Node.val are unique. `p` and `q` are different and both exist in the tree.",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+
+class Solution:
+    def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        if not root or root == p or root == q:
+            return root
+        
+        left = self.lowestCommonAncestor(root.left, p, q)
+        right = self.lowestCommonAncestor(root.right, p, q)
+        
+        if left and right:
+            return root
+        
+        return left or right`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(h)",
+            keyIdea: "Recursive DFS",
+            analysis: "A recursive DFS approach elegantly solves this. For any given `root`, the recursive function returns `p`, `q`, the LCA, or `None`. If the recursive calls on the left and right subtrees both return non-null values, it means `p` and `q` are in different subtrees, so the current `root` is their LCA. If only one call returns a non-null value, it means both nodes are in that subtree, so we pass that result up the call stack."
+        },
+        {
+            id: "construct_tree_pre_in",
+            title: "8. Construct Binary Tree from Preorder and Inorder Traversal",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal",
+            description: "Given two integer arrays `preorder` and `inorder` where `preorder` is the preorder traversal and `inorder` is the inorder traversal of the same tree, construct and return the binary tree.",
+            constraints: "`preorder` and `inorder` consist of unique values. Each value in `inorder` also appears in `preorder`. `preorder` is guaranteed to be the preorder traversal of the tree.",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def buildTree(self, preorder: list[int], inorder: list[int]) -> Optional[TreeNode]:
+        inorder_map = {val: i for i, val in enumerate(inorder)}
+        preorder_idx = 0
+        
+        def build(left, right):
+            nonlocal preorder_idx
+            if left > right:
+                return None
+            
+            root_val = preorder[preorder_idx]
+            preorder_idx += 1
+            root = TreeNode(root_val)
+            
+            inorder_idx = inorder_map[root_val]
+            
+            root.left = build(left, inorder_idx - 1)
+            root.right = build(inorder_idx + 1, right)
+            return root
+            
+        return build(0, len(inorder) - 1)`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Recursive Construction with Hash Map",
+            analysis: "The first element of `preorder` is always the root of the current subtree. We can find this root's value in the `inorder` traversal to determine which elements belong to its left subtree and which belong to its right. A hash map of `inorder` values to their indices allows for O(1) lookups. A recursive function then builds the left and right subtrees using the appropriate slices of the traversals."
+        },
+        {
+            id: "max_width_binary_tree",
+            title: "9. Maximum Width of Binary Tree",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/maximum-width-of-binary-tree",
+            description: "Given the root of a binary tree, return the maximum width of the tree. The width of one level is the length between the end-nodes (the leftmost and rightmost non-null nodes).",
+            constraints: "The number of nodes in the tree is in the range [1, 3000].",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+from collections import deque
+
+class Solution:
+    def widthOfBinaryTree(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+            
+        q = deque([(root, 0)]) # Store (node, position_index)
+        max_width = 0
+        
+        while q:
+            level_size = len(q)
+            _, level_start_idx = q[0]
+            _, level_end_idx = q[-1]
+            max_width = max(max_width, level_end_idx - level_start_idx + 1)
+            
+            for _ in range(level_size):
+                node, idx = q.popleft()
+                if node.left:
+                    q.append((node.left, 2 * idx))
+                if node.right:
+                    q.append((node.right, 2 * idx + 1))
+        
+        return max_width`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(w)",
+            keyIdea: "BFS with Heap-like Indexing",
+            analysis: "The key is to assign an index to each node as if it were in a complete binary tree (heap). If a node has index `i`, its left child has index `2*i` and its right child `2*i+1`. We perform a level-order traversal (BFS), storing tuples of `(node, index)`. For each level, the width is `(index of rightmost node) - (index of leftmost node) + 1`. We track the maximum width found across all levels."
+        },
+        {
+            id: "all_nodes_distance_k",
+            title: "10. All Nodes Distance K in Binary Tree",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/all-nodes-distance-k-in-binary-tree",
+            description: "Given the `root` of a binary tree, the value of a `target` node, and an integer `k`, return an array of the values of all nodes that have a distance `k` from the `target` node.",
+            constraints: "The number of nodes in the tree is in the range [1, 500]. `target` is the value of an existing node.",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+from collections import deque, defaultdict
+
+class Solution:
+    def distanceK(self, root: TreeNode, target: TreeNode, k: int) -> list[int]:
+        if not root: return []
+
+        # 1. Convert tree to a graph (to traverse upwards)
+        graph = defaultdict(list)
+        q = deque([root])
+        while q:
+            node = q.popleft()
+            if node.left:
+                graph[node].append(node.left)
+                graph[node.left].append(node)
+                q.append(node.left)
+            if node.right:
+                graph[node].append(node.right)
+                graph[node.right].append(node)
+                q.append(node.right)
+        
+        # 2. Perform BFS from the target node
+        res = []
+        visited = {target}
+        q = deque([(target, 0)]) # (node, distance)
+        
+        while q:
+            node, dist = q.popleft()
+            if dist == k:
+                res.append(node.val)
+            
+            if dist < k:
+                for neighbor in graph[node]:
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        q.append((neighbor, dist + 1))
+        return res`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Tree to Graph Conversion + BFS",
+            analysis: "A tree is an undirected graph. The problem becomes finding all nodes at a certain distance from a start node, which is a classic BFS problem. First, traverse the tree (using DFS or BFS) to build an adjacency list representation of the graph, including parent pointers. Then, perform a standard BFS starting from the `target` node, keeping track of visited nodes and distance, and collect all nodes at distance `k`."
+        },
+        {
+            id: "search_rotated_sorted",
+            title: "11. Search in Rotated Sorted Array",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/search-in-rotated-sorted-array",
+            description: "Given a sorted array `nums` rotated at an unknown pivot, and a `target`, return the index of `target` if it is in `nums`, or -1 otherwise. Must be O(log n).",
+            constraints: "1 <= nums.length <= 5000. All values of nums are unique.",
+            solution: `class Solution:
+    def search(self, nums: list[int], target: int) -> int:
+        left, right = 0, len(nums) - 1
+
+        while left <= right:
+            mid = (left + right) // 2
+            if nums[mid] == target:
+                return mid
+
+            # Check if left half is sorted
+            if nums[left] <= nums[mid]:
+                if nums[left] <= target < nums[mid]:
+                    right = mid - 1
+                else:
+                    left = mid + 1
+            # Right half must be sorted
+            else:
+                if nums[mid] < target <= nums[right]:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+        
+        return -1`,
+            timeComplexity: "O(log n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Modified Binary Search",
+            analysis: "Standard binary search requires a fully sorted array. In a rotated sorted array, at least one half (from `left` to `mid`, or from `mid` to `right`) must be sorted. The algorithm first identifies which half is sorted. Then it checks if the `target` lies within the range of that sorted half. If it does, the search space is narrowed to that half. Otherwise, it's narrowed to the other (unsorted) half."
+        },
+        {
+            id: "find_min_rotated_sorted",
+            title: "12. Find Minimum in Rotated Sorted Array",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array",
+            description: "Given a sorted rotated array `nums` of unique elements, return the minimum element in this array. Must be O(log n).",
+            constraints: "1 <= n <= 5000. All the integers of nums are unique.",
+            solution: `class Solution:
+    def findMin(self, nums: list[int]) -> int:
+        left, right = 0, len(nums) - 1
+        res = nums[0]
+
+        while left <= right:
+            # If the current window is already sorted, the min is at the left
+            if nums[left] < nums[right]:
+                res = min(res, nums[left])
+                break
+
+            mid = (left + right) // 2
+            res = min(res, nums[mid])
+            
+            # The inflection point is in the half that is not sorted
+            if nums[mid] >= nums[left]: # Left half is sorted, search right
+                left = mid + 1
+            else: # Right half is sorted, search left
+                right = mid - 1
+                
+        return res`,
+            timeComplexity: "O(log n)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Modified Binary Search",
+            analysis: "The minimum element is the pivot or 'inflection point'. We use binary search to find it. At each step, we compare `nums[mid]` with `nums[left]` (or `nums[right]`). If `nums[mid] >= nums[left]`, it means the left part of the array is sorted, so the pivot must be in the right part. We then search the right half. Otherwise, the pivot is in the left half, and we search there. The minimum value found so far is tracked throughout the search."
+        },
+        {
+            id: "kth_largest_element",
+            title: "13. Kth Largest Element in an Array",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/kth-largest-element-in-an-array",
+            description: "Given an integer array `nums` and an integer `k`, return the `k`th largest element in the array.",
+            constraints: "1 <= k <= nums.length <= 10^5.",
+            solution: `import heapq
+
+class Solution:
+    def findKthLargest(self, nums: list[int], k: int) -> int:
+        # Use a min-heap of size k
+        min_heap = []
+        for num in nums:
+            heapq.heappush(min_heap, num)
+            if len(min_heap) > k:
+                heapq.heappop(min_heap)
+        
+        return min_heap[0]`,
+            timeComplexity: "O(n log k)",
+            spaceComplexity: "O(k)",
+            keyIdea: "Min-Heap",
+            analysis: "A min-heap of size `k` is an efficient way to solve this. Iterate through the array. For each number, push it onto the heap. If the heap's size exceeds `k`, pop the smallest element. After iterating through all numbers, the heap will contain the `k` largest elements, and its root (the smallest element in the heap) will be the kth largest element overall."
+        },
+        {
+            id: "find_k_closest_elements",
+            title: "14. Find K Closest Elements",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/find-k-closest-elements",
+            description: "Given a sorted integer array `arr`, two integers `k` and `x`, return the `k` closest integers to `x` in the array. The result should also be sorted in ascending order.",
+            constraints: "1 <= k <= arr.length <= 10^4. `arr` is sorted.",
+            solution: `class Solution:
+    def findClosestElements(self, arr: list[int], k: int, x: int) -> list[int]:
+        # Binary search to find the "left bound" of the result window
+        left, right = 0, len(arr) - k
+        
+        while left < right:
+            mid = (left + right) // 2
+            # Compare distance of arr[mid] vs arr[mid+k] from x
+            if x - arr[mid] > arr[mid + k] - x:
+                left = mid + 1
+            else:
+                right = mid
+        
+        return arr[left : left + k]`,
+            timeComplexity: "O(log(n-k) + k)",
+            spaceComplexity: "O(k)",
+            keyIdea: "Binary Search on Window Start",
+            analysis: "Instead of finding `x` first, we can directly binary search for the starting index of the optimal window of size `k`. The search space for the starting index is `[0, len(arr) - k]`. For a given `mid` (potential start index), we compare the element at `arr[mid]` with the element just outside the window, `arr[mid + k]`. If `arr[mid]` is farther from `x` than `arr[mid+k]`, the optimal window must be to the right, so we set `left = mid + 1`. Otherwise, the optimal window might start at `mid` or to its left, so we set `right = mid`."
+        },
+        {
+            id: "search_2d_matrix",
+            title: "15. Search a 2D Matrix",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/search-a-2d-matrix",
+            description: "Given an `m x n` integer matrix where each row is sorted, and the first integer of each row is greater than the last of the previous row. Write a function to search for a `target` value.",
+            constraints: "1 <= m, n <= 100.",
+            solution: `class Solution:
+    def searchMatrix(self, matrix: list[list[int]], target: int) -> bool:
+        if not matrix or not matrix[0]:
+            return False
+        
+        rows, cols = len(matrix), len(matrix[0])
+        left, right = 0, rows * cols - 1
+        
+        while left <= right:
+            mid_idx = (left + right) // 2
+            mid_val = matrix[mid_idx // cols][mid_idx % cols]
+            
+            if mid_val == target:
+                return True
+            elif mid_val < target:
+                left = mid_idx + 1
+            else:
+                right = mid_idx - 1
+                
+        return False`,
+            timeComplexity: "O(log(m*n))",
+            spaceComplexity: "O(1)",
+            keyIdea: "Binary Search on a Virtual 1D Array",
+            analysis: "The properties of the matrix allow us to treat it as a single, sorted 1D array of size `m * n`. We can perform a standard binary search on the index range `[0, m*n - 1]`. For any given virtual index `mid_idx`, we can map it back to its 2D coordinates using `row = mid_idx // cols` and `col = mid_idx % cols` to retrieve the value for comparison."
+        },
+        {
+            id: "implement_trie",
+            title: "16. Implement Trie (Prefix Tree)",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/implement-trie-prefix-tree",
+            description: "A trie is a tree-like data structure used to efficiently store and retrieve keys in a dataset of strings. Implement `insert`, `search`, and `startsWith` methods.",
+            constraints: "1 <= word.length, prefix.length <= 2000. At most 3 * 10^4 calls will be made in total.",
+            solution: `class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end_of_word = False
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def insert(self, word: str) -> None:
+        curr = self.root
+        for char in word:
+            if char not in curr.children:
+                curr.children[char] = TrieNode()
+            curr = curr.children[char]
+        curr.is_end_of_word = True
+
+    def search(self, word: str) -> bool:
+        curr = self.root
+        for char in word:
+            if char not in curr.children:
+                return False
+            curr = curr.children[char]
+        return curr.is_end_of_word
+
+    def startsWith(self, prefix: str) -> bool:
+        curr = self.root
+        for char in prefix:
+            if char not in curr.children:
+                return False
+            curr = curr.children[char]
+        return True`,
+            timeComplexity: "O(L) for all ops",
+            spaceComplexity: "O(N*L)",
+            keyIdea: "Trie (Prefix Tree) Data Structure",
+            analysis: "A Trie is composed of nodes, where each node has a dictionary of children (mapping a character to another TrieNode) and a boolean flag indicating if it's the end of a word. `insert` traverses the trie, creating nodes as needed. `search` traverses and checks the `is_end_of_word` flag at the end. `startsWith` just checks for the existence of the prefix path. `L` is the length of the word/prefix, `N` is the number of words."
+        },
+        {
+            id: "design_add_search_words",
+            title: "17. Design Add and Search Words Data Structure",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/design-add-and-search-words-data-structure",
+            description: "Design a data structure that supports adding new words and finding if a string matches any previously added string. `search` can contain dots '.' which match any character.",
+            constraints: "1 <= word.length <= 25. At most 5 * 10^4 calls will be made.",
+            solution: `class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end_of_word = False
+
+class WordDictionary:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def addWord(self, word: str) -> None:
+        curr = self.root
+        for char in word:
+            curr = curr.children.setdefault(char, TrieNode())
+        curr.is_end_of_word = True
+
+    def search(self, word: str) -> bool:
+        def dfs(j, node):
+            curr = node
+            for i in range(j, len(word)):
+                char = word[i]
+                if char == ".":
+                    for child in curr.children.values():
+                        if dfs(i + 1, child):
+                            return True
+                    return False
+                else:
+                    if char not in curr.children:
+                        return False
+                    curr = curr.children[char]
+            return curr.is_end_of_word
+            
+        return dfs(0, self.root)`,
+            timeComplexity: "O(L) for add, O(N*26^L) for search",
+            spaceComplexity: "O(M)",
+            keyIdea: "Trie with Backtracking Search",
+            analysis: "This problem extends the basic Trie. The `addWord` function is a standard trie insertion. The `search` function must handle the '.' wildcard. This requires a recursive DFS/backtracking approach. When a '.' is encountered, the search must branch out and explore all possible children of the current node, recursively calling the search on the rest of the word for each child. `L` is word length, `N` is number of words, `M` is total characters stored."
+        },
+        {
+            id: "time_based_kv_store",
+            title: "18. Time Based Key-Value Store",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/time-based-key-value-store",
+            description: "Design a key-value store that supports `set(key, value, timestamp)` and `get(key, timestamp)`. `get` returns the value set for that key with the largest `timestamp <=` the given timestamp.",
+            constraints: "Timestamps are strictly increasing.",
+            solution: `from collections import defaultdict
+
+class TimeMap:
+    def __init__(self):
+        self.store = defaultdict(list) # key -> list of [timestamp, value]
+
+    def set(self, key: str, value: str, timestamp: int) -> None:
+        self.store[key].append([timestamp, value])
+
+    def get(self, key: str, timestamp: int) -> str:
+        values = self.store.get(key, [])
+        if not values:
+            return ""
+        
+        # Binary search for the timestamp
+        left, right = 0, len(values) - 1
+        res = ""
+        while left <= right:
+            mid = (left + right) // 2
+            if values[mid][0] <= timestamp:
+                res = values[mid][1]
+                left = mid + 1
+            else:
+                right = mid - 1
+        return res`,
+            timeComplexity: "O(1) for set, O(log N) for get",
+            spaceComplexity: "O(M)",
+            keyIdea: "Hash Map + Binary Search",
+            analysis: "A hash map is used to store keys. The value for each key is a list of `[timestamp, value]` pairs. Since timestamps for `set` are strictly increasing, this list will be sorted by timestamp. This allows the `get` operation to use binary search on the list to find the desired value in O(log N) time, where N is the number of entries for that key. `M` is the total data stored."
+        },
+        {
+            id: "design_hit_counter",
+            title: "19. Design Hit Counter",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/design-hit-counter",
+            description: "Design a hit counter which counts the number of hits received in the past 5 minutes (300 seconds). Implement `hit(timestamp)` and `getHits(timestamp)`.",
+            constraints: "Timestamp is in seconds (integer). Timestamps are monotonically increasing.",
+            solution: `from collections import deque
+
+class HitCounter:
+    def __init__(self):
+        self.hits = deque() # Store timestamps of hits
+
+    def hit(self, timestamp: int) -> None:
+        self.hits.append(timestamp)
+
+    def getHits(self, timestamp: int) -> int:
+        # Remove hits that are older than 5 minutes (300 seconds)
+        while self.hits and timestamp - self.hits[0] >= 300:
+            self.hits.popleft()
+        return len(self.hits)`,
+            timeComplexity: "O(1) amortized for both",
+            spaceComplexity: "O(W)",
+            keyIdea: "Queue (Deque)",
+            analysis: "A queue (specifically a `deque` for efficient `popleft`) is a perfect data structure for this. The `hit` operation simply appends the timestamp to the queue. The `getHits` operation first removes any timestamps from the front of the queue that are now outside the 300-second window. The number of hits is then just the current size of the queue. `W` is the number of hits in the window."
+        },
+        {
+            id: "lru_cache",
+            title: "20. LRU Cache",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/lru-cache",
+            description: "Design a data structure that follows the constraints of a Least Recently Used (LRU) cache. Implement `get(key)` and `put(key, value)` in O(1) time.",
+            constraints: "The functions `get` and `put` must each run in O(1) average time complexity.",
+            solution: `class Node:
+    def __init__(self, key, val):
+        self.key, self.val = key, val
+        self.prev = self.next = None
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.cap = capacity
+        self.cache = {} # map key to node
+        # Left=LRU, Right=MRU
+        self.left, self.right = Node(0, 0), Node(0, 0)
+        self.left.next, self.right.prev = self.right, self.left
+    
+    # remove node from list
+    def _remove(self, node):
+        prev, nxt = node.prev, node.next
+        prev.next, nxt.prev = nxt, prev
+
+    # insert node at right
+    def _insert(self, node):
+        prev, nxt = self.right.prev, self.right
+        prev.next = nxt.prev = node
+        node.next, node.prev = nxt, prev
+
+    def get(self, key: int) -> int:
+        if key in self.cache:
+            node = self.cache[key]
+            self._remove(node)
+            self._insert(node)
+            return node.val
+        return -1
+
+    def put(self, key: int, value: int) -> None:
+        if key in self.cache:
+            self._remove(self.cache[key])
+        
+        self.cache[key] = Node(key, value)
+        self._insert(self.cache[key])
+
+        if len(self.cache) > self.cap:
+            lru = self.left.next
+            self._remove(lru)
+            del self.cache[lru.key]`,
+            timeComplexity: "O(1) for get and put",
+            spaceComplexity: "O(capacity)",
+            keyIdea: "Hash Map + Doubly Linked List",
+            analysis: "The key to O(1) for both `get` and `put` is combining a hash map and a doubly linked list. The hash map provides O(1) lookup of keys to their corresponding nodes in the list. The doubly linked list allows for O(1) insertion and deletion of nodes. We maintain the list in order of use, with the most recently used (MRU) at one end (e.g., right) and the least recently used (LRU) at the other (e.g., left). When an item is accessed (`get`) or inserted (`put`), it's moved to the MRU end. When the cache exceeds capacity, the node at the LRU end is evicted."
+        },
+        {
+            id: "path_sum_ii",
+            title: "21. Path Sum II",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/path-sum-ii",
+            description: "Given the root of a binary tree and an integer `targetSum`, return all root-to-leaf paths where the sum of the node values in the path equals `targetSum`.",
+            constraints: "The number of nodes in the tree is in the range [0, 5000].",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def pathSum(self, root: Optional[TreeNode], targetSum: int) -> list[list[int]]:
+        res = []
+        path = []
+
+        def dfs(node, current_sum):
+            if not node:
+                return
+
+            path.append(node.val)
+            current_sum += node.val
+
+            if not node.left and not node.right and current_sum == targetSum:
+                res.append(path.copy())
+            
+            dfs(node.left, current_sum)
+            dfs(node.right, current_sum)
+
+            path.pop()
+
+        dfs(root, 0)
+        return res`,
+            timeComplexity: "O(N^2) in worst case",
+            spaceComplexity: "O(H)",
+            keyIdea: "Backtracking / DFS",
+            analysis: "This is a classic backtracking problem. A DFS function traverses the tree from the root. It maintains the current path and the current sum. When a leaf node is reached, it checks if the sum equals `targetSum`. If it does, a copy of the current path is added to the results. Crucially, after returning from a recursive call, the last node added to the path must be popped (backtracking) to explore other branches correctly. Time complexity is O(N^2) in the worst case (a skewed tree) because copying the path of length H takes O(H) and could be done N/2 times."
+        },
+        {
+            id: "path_sum_iii",
+            title: "22. Path Sum III",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/path-sum-iii",
+            description: "Given the root of a binary tree and an integer `targetSum`, return the number of paths where the sum of the values along the path equals `targetSum`. The path does not need to start or end at the root or a leaf, but must go downwards.",
+            constraints: "The number of nodes in the tree is in the range [0, 1000].",
+            solution: `# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+from collections import defaultdict
+
+class Solution:
+    def pathSum(self, root: Optional[TreeNode], targetSum: int) -> int:
+        self.count = 0
+        prefix_sum_freq = defaultdict(int)
+        prefix_sum_freq[0] = 1
+
+        def dfs(node, current_sum):
+            if not node:
+                return
+            
+            current_sum += node.val
+            diff = current_sum - targetSum
+            self.count += prefix_sum_freq[diff]
+            
+            prefix_sum_freq[current_sum] += 1
+            
+            dfs(node.left, current_sum)
+            dfs(node.right, current_sum)
+            
+            # Backtrack: remove current_sum from map for this path
+            prefix_sum_freq[current_sum] -= 1
+
+        dfs(root, 0)
+        return self.count`,
+            timeComplexity: "O(n)",
+            spaceComplexity: "O(h)",
+            keyIdea: "Prefix Sum on a Tree",
+            analysis: "This extends the 'Subarray Sum Equals K' problem to a tree. We perform a DFS from the root, maintaining the current path sum from the root to the current node. We use a hash map to store the frequencies of prefix sums encountered on the path from the root. At each node, we check if `current_sum - targetSum` exists in the map. If it does, it means a path ending at the current node with the target sum exists. After visiting a node's children, we must backtrack by decrementing its prefix sum's frequency in the map."
+        },
+        {
+            id: "encode_decode_strings",
+            title: "23. Encode and Decode Strings",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/encode-and-decode-strings",
+            description: "Design an algorithm to encode a list of strings to a string. The encoded string is then sent over the network and is decoded back to the original list of strings.",
+            constraints: "0 <= strs.length < 100. 0 <= strs[i].length < 200.",
+            solution: `class Codec:
+    def encode(self, strs: list[str]) -> str:
+        """Encodes a list of strings to a single string.
+        Format: [length of string][delimiter][string]
+        """
+        res = ""
+        for s in strs:
+            res += str(len(s)) + "#" + s
+        return res
+
+    def decode(self, s: str) -> list[str]:
+        """Decodes a single string to a list of strings.
+        """
+        res, i = [], 0
+        while i < len(s):
+            j = i
+            while s[j] != '#':
+                j += 1
+            length = int(s[i:j])
+            res.append(s[j + 1 : j + 1 + length])
+            i = j + 1 + length
+        return res`,
+            timeComplexity: "O(N)",
+            spaceComplexity: "O(N)",
+            keyIdea: "Chunked Transfer Encoding",
+            analysis: "The challenge is to handle any possible character in the strings, including a potential delimiter. A robust way is to prefix each string with its length and a delimiter. For example, `[\"hello\", \"world\"]` becomes `\"5#hello5#world\"`. The decoder reads the length first, then the delimiter, and then knows exactly how many characters to read for the actual string. This process is repeated until the encoded string is fully consumed. `N` is the total number of characters."
+        },
+        {
+            id: "meeting_rooms_ii",
+            title: "24. Meeting Rooms II",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/meeting-rooms-ii",
+            description: "Given an array of meeting time intervals consisting of start and end times, find the minimum number of conference rooms required.",
+            constraints: "0 <= intervals.length <= 10^4. intervals[i].length == 2.",
+            solution: `import heapq
+
+class Solution:
+    def minMeetingRooms(self, intervals: list[list[int]]) -> int:
+        if not intervals:
+            return 0
+            
+        # Sort intervals by start time
+        intervals.sort(key=lambda x: x[0])
+        
+        # Min-heap to store end times of meetings in progress
+        end_times_heap = [intervals[0][1]]
+        
+        for i in range(1, len(intervals)):
+            # If the current meeting starts after the earliest-ending meeting finishes
+            if intervals[i][0] >= end_times_heap[0]:
+                heapq.heappop(end_times_heap) # Reuse the room
+            
+            # Allocate a room (or the reused one) for the current meeting
+            heapq.heappush(end_times_heap, intervals[i][1])
+            
+        return len(end_times_heap)`,
+            timeComplexity: "O(n log n)",
+            spaceComplexity: "O(n)",
+            keyIdea: "Min-Heap + Sorting",
+            analysis: "First, sort the intervals by their start times. Use a min-heap to keep track of the end times of meetings currently in progress. The size of the heap represents the number of rooms currently occupied. When considering a new meeting, check the top of the heap (the meeting that ends earliest). If the new meeting starts after this one ends, we can reuse the room by popping the old end time. Then, push the new meeting's end time onto the heap. The maximum size the heap reaches is the minimum number of rooms required."
+        },
+        {
+            id: "shortest_path_food",
+            title: "25. Shortest Path to Get Food",
+            difficulty: "Medium",
+            link: "https://leetcode.com/problems/shortest-path-to-get-food",
+            description: "You are given an `m x n` grid where '*' is your location, '#' is food, 'O' is free space, and 'X' is an obstacle. Return the length of the shortest path to reach any food cell. If no path exists, return -1.",
+            constraints: "grid.length == m. grid[i].length == n. 1 <= m, n <= 200.",
+            solution: `from collections import deque
+
+class Solution:
+    def getFood(self, grid: list[list[str]]) -> int:
+        ROWS, COLS = len(grid), len(grid[0])
+        q = deque()
+        
+        # Find start position
+        for r in range(ROWS):
+            for c in range(COLS):
+                if grid[r][c] == '*':
+                    q.append((r, c, 0)) # (row, col, distance)
+                    break
+        
+        visited = set()
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        
+        while q:
+            r, c, dist = q.popleft()
+            
+            if (r, c) in visited:
+                continue
+            visited.add((r,c))
+            
+            if grid[r][c] == '#':
+                return dist
+            
+            for dr, dc in directions:
+                nr, nc = r + dr, c + dc
+                if (0 <= nr < ROWS and 0 <= nc < COLS and
+                    grid[nr][nc] != 'X' and (nr, nc) not in visited):
+                    q.append((nr, nc, dist + 1))
+        
+        return -1`,
+            timeComplexity: "O(m*n)",
+            spaceComplexity: "O(m*n)",
+            keyIdea: "Breadth-First Search (BFS)",
+            analysis: "Finding the shortest path in an unweighted grid is a classic BFS problem. BFS explores the grid layer by layer, guaranteeing that the first time we reach a food cell ('#'), it will be via a shortest path. We start the BFS from the '*' location, using a queue to store `(row, col, distance)` tuples and a set to keep track of visited cells to avoid cycles and redundant work."
+        },
+        {
+            id: "rectangle_overlap",
+            title: "26. Rectangle Overlap",
+            difficulty: "Easy",
+            link: "https://leetcode.com/problems/rectangle-overlap",
+            description: "An axis-aligned rectangle is represented by `[x1, y1, x2, y2]`. Given two rectangles `rec1` and `rec2`, return `true` if they overlap, and `false` otherwise.",
+            constraints: "rec1.length == 4. rec2.length == 4.",
+            solution: `class Solution:
+    def isRectangleOverlap(self, rec1: list[int], rec2: list[int]) -> bool:
+        # Check for non-overlap conditions
+        # rec1 is to the left of rec2
+        if rec1[2] <= rec2[0]:
+            return False
+        # rec1 is to the right of rec2
+        if rec1[0] >= rec2[2]:
+            return False
+        # rec1 is below rec2
+        if rec1[3] <= rec2[1]:
+            return False
+        # rec1 is above rec2
+        if rec1[1] >= rec2[3]:
+            return False
+        
+        return True`,
+            timeComplexity: "O(1)",
+            spaceComplexity: "O(1)",
+            keyIdea: "Check Non-Overlap Conditions",
+            analysis: "It's often simpler to define the conditions under which two rectangles *do not* overlap and then negate the result. Two rectangles do not overlap if one is entirely to the left, right, above, or below the other. If none of these non-overlapping conditions are met, the rectangles must overlap. The area of overlap must be positive; lines or points touching do not count as overlap."
+        }
+    ];
+
+    const navList = document.getElementById('nav-list');
+    const problemsContainer = document.getElementById('problems-container');
+    const overviewPanel = document.getElementById('overview-panel');
+    let complexityChart;
+
+    function displayProblem(problemId) {
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+
+        if (problemId === 'overview') {
+            const overviewLink = document.querySelector(`.nav-link[data-id="overview"]`);
+            if(overviewLink) overviewLink.classList.add('active');
+            overviewPanel.classList.add('active');
+        } else {
+            const problemToShow = document.getElementById(`problem-${problemId}`);
+            if (problemToShow) {
+                problemToShow.classList.add('active');
+                const navLink = document.querySelector(`.nav-link[data-id="${problemId}"]`);
+                if(navLink) navLink.classList.add('active');
+            }
+        }
+        document.getElementById('main-content').scrollTop = 0;
+    }
+
+    function setupTabs(problemId) {
+        const problemContainer = document.getElementById(`problem-${problemId}`);
+        const tabButtons = problemContainer.querySelectorAll('.tab-btn');
+        const tabContents = problemContainer.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.dataset.tab;
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tabContents.forEach(content => {
+                    if (content.dataset.tabContent === tabName) {
+                        content.classList.add('active');
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.remove('active');
+                        content.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    }
+    
+    function copyCode(event) {
+        const button = event.target;
+        const pre = button.nextElementSibling;
+        const code = pre.querySelector('code').innerText;
+
+        navigator.clipboard.writeText(code).then(() => {
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+                button.textContent = 'Copy Code';
+            }, 2000);
+        }).catch(err => {
+             const textArea = document.createElement('textarea');
+             textArea.value = code;
+             document.body.appendChild(textArea);
+             textArea.focus();
+             textArea.select();
+             try {
+                 document.execCommand('copy');
+                 button.textContent = 'Copied!';
+                 setTimeout(() => { button.textContent = 'Copy Code'; }, 2000);
+             } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+             }
+             document.body.removeChild(textArea);
+        });
+    }
+    
+    function renderChart(filteredData) {
+        const ctx = document.getElementById('complexityChart').getContext('2d');
+        
+        const complexityMap = {
+             "O(1)": 1, 
+             "O(L) for all ops": 2, "O(log n)": 2, "O(log(n-k) + k)": 2, "O(log(m*n))": 2,
+             "O(H)": 3, "O(H + k)": 3, "O(h)": 3,
+             "O(n)": 4, "O(L)": 4, "O(w)": 4, "O(N)": 4, "O(m*n)": 4,
+             "O(k)": 4,
+             "O(n log n)": 5, "O(n log k)": 5,
+             "O(N^2) in worst case": 6, "O(n^2)": 6,
+             "O(N*26^L) for search": 7, "O(n * 2^n)": 8,
+             "O(n * n!)": 10,
+        };
+        
+        const data = {
+            labels: filteredData.map(p => p.title.substring(p.title.indexOf('.') + 2)),
+            datasets: [{
+                label: 'Time Complexity (Relative Scale)',
+                data: filteredData.map(p => complexityMap[p.timeComplexity] || 0),
+                backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        };
+
+        const options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { display: false },
+                    grid: { drawOnChartArea: false, drawBorder: false },
+                    title: { display: true, text: 'Lower is Faster', font: { size: 14 } }
+                },
+                x: {
+                    ticks: {
+                        autoSkip: false, maxRotation: 90, minRotation: 70,
+                        callback: function(value) {
+                            const label = this.getLabelForValue(value);
+                            return label.length > 25 ? label.substring(0, 25) + '...' : label;
+                        }
+                    },
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        title: (context) => context[0].label,
+                        label: (context) => `Complexity: ${filteredData[context.dataIndex].timeComplexity}`
+                    },
+                    backgroundColor: '#1f2937', titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 12 }, padding: 10, cornerRadius: 6, displayColors: false
+                }
+            }
+        };
+        
+        if (complexityChart) {
+            complexityChart.destroy();
+        }
+        complexityChart = new Chart(ctx, { type: 'bar', data: data, options: options });
+    }
+
+    function initializeApp() {
+        const navListContainer = document.getElementById('nav-list');
+        navListContainer.innerHTML = '';
+        problemsContainer.innerHTML = '';
+
+        const overviewLink = document.createElement('a');
+        overviewLink.href = '#';
+        overviewLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link active';
+        overviewLink.textContent = '📊 Overview';
+        overviewLink.dataset.id = 'overview';
+        overviewLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            displayProblem('overview');
+        });
+        navListContainer.appendChild(overviewLink);
+
+        problemsData.forEach((problem, index) => {
+            const navLink = document.createElement('a');
+            navLink.href = '#';
+            navLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link';
+            navLink.textContent = problem.title;
+            navLink.dataset.id = problem.id;
+
+            navLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                displayProblem(problem.id);
+            });
+            navListContainer.appendChild(navLink);
+
+            const problemEl = document.createElement('div');
+            problemEl.className = 'content-panel';
+            problemEl.id = `problem-${problem.id}`;
+            const solutionHtml = problem.solution.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            problemEl.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-3xl font-bold text-gray-800">${problem.title}</h2>
+                    <a href="${problem.link}" target="_blank" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors">View on LeetCode</a>
+                </div>
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                        <button data-tab="problem" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active">Problem</button>
+                        <button data-tab="solution" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Solution</button>
+                        <button data-tab="analysis" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Analysis</button>
+                    </nav>
+                </div>
+
+                <div data-tab-content="problem" class="tab-content active space-y-4">
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                       <h3 class="font-semibold text-lg mb-2 text-gray-700">Description</h3>
+                       <p class="text-gray-600">${problem.description}</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-lg mb-2 text-gray-700">Constraints</h3>
+                        <p class="text-gray-600 font-mono text-sm">${problem.constraints}</p>
+                    </div>
+                </div>
+                <div data-tab-content="solution" class="tab-content hidden">
+                    <div class="relative">
+                        <button class="copy-btn absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded hover:bg-gray-500">Copy Code</button>
+                        <pre class="bg-gray-900 text-white p-4 rounded-lg shadow-sm text-sm overflow-x-auto"><code class="language-python">${solutionHtml}</code></pre>
+                    </div>
+                </div>
+                <div data-tab-content="analysis" class="tab-content hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Time Complexity</h3>
+                            <p class="text-lg font-mono text-indigo-600">${problem.timeComplexity}</p>
+                         </div>
+                         <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Space Complexity</h3>
+                            <p class="text-lg font-mono text-indigo-600">${problem.spaceComplexity}</p>
+                         </div>
+                          <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Key Idea</h3>
+                            <p class="text-gray-600">${problem.keyIdea}</p>
+                         </div>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-lg mb-2 text-gray-700">Insights</h3>
+                        <p class="text-gray-600 leading-relaxed">${problem.analysis}</p>
+                    </div>
+                </div>
+            `;
+            problemsContainer.appendChild(problemEl);
+            setupTabs(problem.id);
+        });
+        
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', copyCode);
+        });
+
+        const difficultyFilter = document.getElementById('difficulty-filter');
+        difficultyFilter.addEventListener('change', (e) => {
+            const selectedDifficulty = e.target.value;
+            const filtered = selectedDifficulty === 'all'
+                ? problemsData
+                : problemsData.filter(p => p.difficulty === selectedDifficulty);
+            renderChart(filtered);
+        });
+
+        renderChart(problemsData);
+        displayProblem('overview');
+    }
+
+    window.onload = initializeApp;
+
+</script>
+</body>
+</html>
