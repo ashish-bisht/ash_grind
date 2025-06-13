@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive LeetCode Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A two-column SPA. The left column is a fixed navigation list of all LeetCode problems, allowing for quick jumps. The right column displays the detailed content for the selected problem. This content is organized into three tabs: "Problem", "Solution", and "Analysis" to prevent information overload and allow for focused study. An "Overview" section with a chart is included for high-level comparison. This structure was chosen to transform the linear report into a non-linear, user-driven study tool, which is more effective for interview prep. -->
+    <!-- Visualization & Content Choices: Report Info: Problem name, description, code, complexities, analysis. Goal: Organize, Compare, Inform. Viz/Presentation Method: The primary information is presented in structured HTML using a tabbed interface for clarity. Code is in styled <pre><code> blocks with a copy button. For the mandatory visualization requirement, a "Complexity Overview" bar chart (Chart.js/Canvas) is used. It maps qualitative time complexities (O(n), O(n^2), etc.) to a numerical scale to provide a visual summary of problem difficulties, which is a key aspect of the report. A dropdown allows filtering the chart by problem difficulty (Easy, Medium). Interaction: Click-based navigation via the side-list and content tabs. A button to copy code snippets enhances usability. Tooltips on the chart provide detailed complexity info on hover. Library/Method: Vanilla JS for logic, Tailwind for styling, Chart.js for visualization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fdfcf9; }
+        .nav-link.active { background-color: #e2e8f0; color: #1e293b; font-weight: 600; }
+        .tab-btn.active { border-color: #4f46e5; color: #4f46e5; background-color: #eef2ff;}
+        .content-panel { display: none; }
+        .content-panel.active { display: block; }
+        .chart-container { position: relative; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; height: 60vh; max-height: 500px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="flex h-screen">
+        <aside id="nav-container" class="w-1/4 max-w-xs h-full bg-gray-50 border-r border-gray-200 flex flex-col">
+            <h1 class="text-lg font-bold p-4 border-b border-gray-200 text-gray-700">LeetCode Problems</h1>
+            <div id="nav-list" class="flex-grow overflow-y-auto"></div>
+        </aside>
+        
+        <main id="main-content" class="w-3/4 flex-grow p-6 md:p-8 lg:p-10 overflow-y-auto">
+            <div id="overview-panel" class="content-panel active">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Problems Overview</h2>
+                <p class="mb-6 text-gray-600">
+                    Welcome to your interactive LeetCode study guide. This application transforms the detailed report into a set of "flashcards" for efficient interview preparation. Select a problem from the list on the left to review its details. The overview below provides a visual comparison of the optimal time complexities for the problems, which can help you understand which algorithmic approaches are more efficient. You can filter the chart by difficulty.
+                </p>
+                 <div class="mb-6 flex items-center space-x-4">
+                    <label for="difficulty-filter" class="text-gray-700 font-medium">Filter by Difficulty:</label>
+                    <select id="difficulty-filter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5">
+                        <option value="all">All</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                    </select>
+                </div>
+                <div class="p-4 bg-white rounded-xl shadow-md">
+                    <div class="chart-container">
+                        <canvas id="complexityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div id="problems-container"></div>
+        </main>
+    </div>
+
+    <script>
+        const problemsData = [
+            {
+                id: "max_subarray",
+                title: "1. Maximum Subarray",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/maximum-subarray",
+                description: "Given an integer array `nums`, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.",
+                constraints: "1 &le; nums.length &le; 10^5, -10^4 &le; nums[i] &le; 10^4",
+                solution: `class Solution:
+    def maxSubArray(self, nums: list[int]) -> int:
+        if not nums:
+            return 0
+        
+        current_max = nums[0]
+        max_so_far = nums[0]
+        
+        for i in range(1, len(nums)):
+            current_max = max(nums[i], current_max + nums[i])
+            max_so_far = max(max_so_far, current_max)
+        return max_so_far`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Kadane's Algorithm (Dynamic Programming)",
+                analysis: "The core of Kadane's algorithm is its dynamic programming approach. At any point `i`, the maximum subarray sum ending at `i` is either `nums[i]` itself (starting a new subarray) or `nums[i]` added to the maximum sum ending at `i-1`. If the running sum becomes negative, it's better to start a new subarray. This greedy choice at each step leads to the global maximum."
+            },
+            {
+                id: "product_except_self",
+                title: "2. Product of Array Except Self",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/product-of-array-except-self",
+                description: "Given an integer array `nums`, return an array `answer` such that `answer[i]` is equal to the product of all the elements of `nums` except `nums[i]`. Must run in O(n) time and without division.",
+                constraints: "2 &le; nums.length &le; 10^5, -30 &le; nums[i] &le; 30",
+                solution: `class Solution:
+    def productExceptSelf(self, nums: list[int]) -> list[int]:
+        n = len(nums)
+        answer = [1] * n
+        
+        left_product = 1
+        for i in range(n):
+            answer[i] = left_product
+            left_product *= nums[i]
+        
+        right_product = 1
+        for i in range(n - 1, -1, -1):
+            answer[i] *= right_product
+            right_product *= nums[i]
+            
+        return answer`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1) (excluding output array)",
+                keyIdea: "Prefix and Suffix Products",
+                analysis: "The product except self at index `i` is `(product of elements to the left) * (product of elements to the right)`. This solution cleverly calculates these in two passes. The first pass populates the output array with prefix products. The second pass iterates backward, multiplying by the running suffix product, achieving the final result in O(1) auxiliary space."
+            },
+            {
+                id: "rotate_array",
+                title: "3. Rotate Array",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/rotate-array",
+                description: "Given an integer array `nums`, rotate the array to the right by `k` steps, where `k` is non-negative. Do this in-place.",
+                constraints: "1 &le; nums.length &le; 10^5, 0 &le; k &le; 10^5",
+                solution: `class Solution:
+    def rotate(self, nums: list[int], k: int) -> None:
+        n = len(nums)
+        k %= n
+        
+        def reverse(arr, start, end):
+            while start < end:
+                arr[start], arr[end] = arr[end], arr[start]
+                start += 1
+                end -= 1
+        
+        reverse(nums, 0, n - 1)
+        reverse(nums, 0, k - 1)
+        reverse(nums, k, n - 1)`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Three Reversals",
+                analysis: "This in-place rotation is achieved with a three-step reversal algorithm. First, the entire array is reversed. Then, the first `k` elements are reversed. Finally, the remaining `n-k` elements are reversed. This sequence correctly positions all elements in their rotated places with O(1) space."
+            },
+            {
+                id: "container_most_water",
+                title: "4. Container With Most Water",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/container-with-most-water",
+                description: "Given an array `height`, find two lines that together with the x-axis form a container, such that the container contains the most water. Return the maximum amount of water.",
+                constraints: "2 &le; n &le; 10^5, 0 &le; height[i] &le; 10^4",
+                solution: `class Solution:
+    def maxArea(self, height: list[int]) -> int:
+        left, right = 0, len(height) - 1
+        max_area = 0
+        
+        while left < right:
+            current_h = min(height[left], height[right])
+            current_w = right - left
+            max_area = max(max_area, current_h * current_w)
+            
+            if height[left] < height[right]:
+                left += 1
+            else:
+                right -= 1
+        return max_area`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Two Pointers",
+                analysis: "The two-pointer technique starts with the widest possible container. The area is limited by the shorter line. The key insight is to move the pointer of the shorter line inwards. This is because moving the taller line's pointer can't increase the height (it's already not the limiter) and will decrease the width, guaranteeing a smaller area. Moving the shorter line's pointer offers the chance of finding a new, taller line that could create a larger area despite the reduced width."
+            },
+            {
+                id: "3sum",
+                title: "5. 3Sum",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/3sum",
+                description: "Given an integer array `nums`, return all the triplets `[nums[i], nums[j], nums[k]]` such that `i != j`, `i != k`, `j != k`, and `nums[i] + nums[j] + nums[k] == 0`. No duplicate triplets.",
+                constraints: "3 &le; nums.length &le; 3000, -10^5 &le; nums[i] &le; 10^5",
+                solution: `class Solution:
+    def threeSum(self, nums: list[int]) -> list[list[int]]:
+        ans = []
+        nums.sort()
+        
+        for i in range(len(nums) - 2):
+            if i > 0 and nums[i] == nums[i-1]:
+                continue
+            
+            left, right = i + 1, len(nums) - 1
+            while left < right:
+                total = nums[i] + nums[left] + nums[right]
+                if total < 0:
+                    left += 1
+                elif total > 0:
+                    right -= 1
+                else:
+                    ans.append([nums[i], nums[left], nums[right]])
+                    while left < right and nums[left] == nums[left + 1]:
+                        left += 1
+                    while left < right and nums[right] == nums[right - 1]:
+                        right -= 1
+                    left += 1
+                    right -= 1
+        return ans`,
+                timeComplexity: "O(n^2)",
+                spaceComplexity: "O(sort) or O(ans)",
+                keyIdea: "Sort + Two Pointers",
+                analysis: "Sorting the array is crucial. It allows fixing one number `nums[i]` and then using a two-pointer approach on the rest of the array to find two other numbers that sum to `-nums[i]`. The sorted nature enables the pointers to move inwards efficiently. Duplicate handling is managed by skipping identical elements for `i`, `left`, and `right` pointers after a solution is found."
+            },
+            {
+                id: "3sum_closest",
+                title: "6. 3Sum Closest",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/3sum-closest",
+                description: "Given an integer array `nums` and a `target`, find three integers in `nums` such that their sum is closest to `target`. Return the sum of the three integers.",
+                constraints: "3 &le; nums.length &le; 500, -1000 &le; nums[i] &le; 1000",
+                solution: `class Solution:
+    def threeSumClosest(self, nums: list[int], target: int) -> int:
+        nums.sort()
+        closest_sum = float('inf')
+
+        for i in range(len(nums) - 2):
+            left, right = i + 1, len(nums) - 1
+            while left < right:
+                current_sum = nums[i] + nums[left] + nums[right]
+                if abs(current_sum - target) < abs(closest_sum - target):
+                    closest_sum = current_sum
+                
+                if current_sum < target:
+                    left += 1
+                elif current_sum > target:
+                    right -= 1
+                else:
+                    return target
+        return closest_sum`,
+                timeComplexity: "O(n^2)",
+                spaceComplexity: "O(sort)",
+                keyIdea: "Sort + Two Pointers, Track Minimum Difference",
+                analysis: "This problem is a variation of 3Sum. It uses the same 'Sort + Two Pointers' pattern. Instead of looking for an exact sum, it tracks the sum with the minimum absolute difference to the target. The pointer movement logic remains the same: if the current sum is less than the target, increase it by moving the left pointer; otherwise, decrease it by moving the right pointer."
+            },
+            {
+                id: "find_all_anagrams",
+                title: "7. Find All Anagrams in a String",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/find-all-anagrams-in-a-string",
+                description: "Given two strings `s` and `p`, return an array of all the start indices of `p`'s anagrams in `s`.",
+                constraints: "1 &le; s.length, p.length &le; 3 * 10^4",
+                solution: `from collections import Counter
+
+class Solution:
+    def findAnagrams(self, s: str, p: str) -> list[int]:
+        ns, np = len(s), len(p)
+        if ns < np: return []
+
+        p_counter = Counter(p)
+        s_window_counter = Counter(s[:np])
+        
+        result = []
+        if s_window_counter == p_counter:
+            result.append(0)
+        
+        for i in range(np, ns):
+            s_window_counter[s[i]] += 1
+            s_window_counter[s[i - np]] -= 1
+            if s_window_counter[s[i - np]] == 0:
+                del s_window_counter[s[i - np]]
+            
+            if s_window_counter == p_counter:
+                result.append(i - np + 1)
+        
+        return result`,
+                timeComplexity: "O(len(s))",
+                spaceComplexity: "O(1)",
+                keyIdea: "Sliding Window with Character Counters",
+                analysis: "This problem is perfectly solved with a sliding window of size `len(p)`. Instead of re-calculating for each substring, character frequency maps (Counters) for the window and pattern `p` are maintained. As the window slides, we efficiently update the window's counter by decrementing the count of the leaving character and incrementing the count of the entering character. A direct comparison of the counter objects determines if the current window is an anagram."
+            },
+            {
+                id: "longest_substring_no_repeat",
+                title: "8. Longest Substring Without Repeating Characters",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/longest-substring-without-repeating-characters",
+                description: "Given a string `s`, find the length of the longest substring without repeating characters.",
+                constraints: "0 &le; s.length &le; 5 * 10^4",
+                solution: `class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        char_set = set()
+        left = 0
+        max_len = 0
+        for right in range(len(s)):
+            while s[right] in char_set:
+                char_set.remove(s[left])
+                left += 1
+            char_set.add(s[right])
+            max_len = max(max_len, right - left + 1)
+        return max_len`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(min(n, m))",
+                keyIdea: "Sliding Window with a Set",
+                analysis: "A sliding window, defined by `left` and `right` pointers, tracks the current substring. A set is used to store characters in the current window for O(1) duplicate checks. The `right` pointer expands the window. If a duplicate character `s[right]` is found, the window shrinks from the left by removing characters from the set and advancing the `left` pointer until the duplicate is gone. At each step, the length of the valid window is checked against the maximum."
+            },
+            {
+                id: "longest_palindromic_substring",
+                title: "9. Longest Palindromic Substring",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/longest-palindromic-substring",
+                description: "Given a string `s`, return the longest palindromic substring in `s`.",
+                constraints: "1 &le; s.length &le; 1000",
+                solution: `class Solution:
+    def longestPalindrome(self, s: str) -> str:
+        res = ""
+        resLen = 0
+
+        for i in range(len(s)):
+            # Odd length
+            l, r = i, i
+            while l >= 0 and r < len(s) and s[l] == s[r]:
+                if (r - l + 1) > resLen:
+                    res = s[l:r+1]
+                    resLen = r - l + 1
+                l -= 1
+                r += 1
+            
+            # Even length
+            l, r = i, i + 1
+            while l >= 0 and r < len(s) and s[l] == s[r]:
+                if (r - l + 1) > resLen:
+                    res = s[l:r+1]
+                    resLen = r - l + 1
+                l -= 1
+                r += 1
+        
+        return res`,
+                timeComplexity: "O(n^2)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Expand Around Center",
+                analysis: "A palindrome is symmetric around its center. This approach iterates through all 2n-1 possible centers (n characters for odd-length palindromes, n-1 gaps for even-length). From each center, it expands outwards with two pointers as long as the characters match. This method avoids the O(n^2) space complexity of dynamic programming solutions while maintaining the same O(n^2) time complexity, which is efficient enough for the given constraints."
+            },
+            {
+                id: "atoi",
+                title: "10. String to Integer (atoi)",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/string-to-integer-atoi",
+                description: "Implement `myAtoi(string s)` which converts a string to a 32-bit signed integer, handling whitespace, signs, non-digit characters, and overflow.",
+                constraints: "0 &le; s.length &le; 200",
+                solution: `class Solution:
+    def myAtoi(self, s: str) -> int:
+        i, sign, res = 0, 1, 0
+        INT_MAX, INT_MIN = 2**31 - 1, -2**31
+        
+        while i < len(s) and s[i] == ' ':
+            i += 1
+            
+        if i < len(s) and (s[i] == '+' or s[i] == '-'):
+            if s[i] == '-':
+                sign = -1
+            i += 1
+            
+        while i < len(s) and s[i].isdigit():
+            digit = int(s[i])
+            if res > INT_MAX // 10 or (res == INT_MAX // 10 and digit > INT_MAX % 10):
+                return INT_MAX if sign == 1 else INT_MIN
+            res = res * 10 + digit
+            i += 1
+            
+        return sign * res`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "String Parsing with Overflow Detection",
+                analysis: "This is an implementation-heavy problem focused on careful state management and edge cases. The logic proceeds in phases: skip whitespace, determine sign, and read digits. The most critical part is checking for integer overflow *before* the next multiplication and addition, by comparing the current result against `INT_MAX // 10`."
+            },
+            {
+                id: "letter_combinations",
+                title: "11. Letter Combinations of a Phone Number",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/letter-combinations-of-a-phone-number",
+                description: "Given a string containing digits from 2-9, return all possible letter combinations that the number could represent based on a telephone keypad.",
+                constraints: "0 &le; digits.length &le; 4",
+                solution: `class Solution:
+    def letterCombinations(self, digits: str) -> list[str]:
+        if not digits: return []
+        mapping = {"2":"abc", "3":"def", "4":"ghi", "5":"jkl", 
+                   "6":"mno", "7":"pqrs", "8":"tuv", "9":"wxyz"}
+        res = []
+        
+        def backtrack(index, path):
+            if index == len(digits):
+                res.append("".join(path))
+                return
+            
+            for char in mapping[digits[index]]:
+                path.append(char)
+                backtrack(index + 1, path)
+                path.pop()
+        
+        backtrack(0, [])
+        return res`,
+                timeComplexity: "O(4^N * N)",
+                spaceComplexity: "O(N)",
+                keyIdea: "Backtracking / DFS",
+                analysis: "This is a classic combinatorial problem solved with backtracking. A recursive function explores all possible paths. For each digit, it iterates through its mapped letters ('a','b','c' for '2'). It 'chooses' a letter, recursively calls itself for the next digit, and then 'unchooses' (backtracks by popping) to explore other possibilities. The recursion builds up solutions character by character."
+            },
+            {
+                id: "word_search",
+                title: "12. Word Search",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/word-search",
+                description: "Given an m x n grid of characters `board` and a `word`, return true if the word exists in the grid. The word can be formed from sequentially adjacent cells. The same cell may not be used more than once.",
+                constraints: "1 &le; m, n &le; 6, 1 &le; word.length &le; 15",
+                solution: `class Solution:
+    def exist(self, board: list[list[str]], word: str) -> bool:
+        ROWS, COLS = len(board), len(board[0])
+        
+        def dfs(r, c, k):
+            if k == len(word): return True
+            if not (0 <= r < ROWS and 0 <= c < COLS and board[r][c] == word[k]):
+                return False
+
+            original_char = board[r][c]
+            board[r][c] = "#"
+            
+            found = (dfs(r+1,c,k+1) or dfs(r-1,c,k+1) or
+                     dfs(r,c+1,k+1) or dfs(r,c-1,k+1))
+            
+            board[r][c] = original_char
+            return found
+
+        for r in range(ROWS):
+            for c in range(COLS):
+                if dfs(r, c, 0): return True
+        return False`,
+                timeComplexity: "O(N * M * 4^L)",
+                spaceComplexity: "O(L)",
+                keyIdea: "Backtracking / DFS on a Grid",
+                analysis: "This is a pathfinding problem on a grid, solved with DFS and backtracking. The DFS function explores from a cell `(r, c)` to find the rest of the word. A critical step is to mark the current cell as 'visited' (e.g., by changing its value temporarily) to prevent reuse in the same path. After exploring its neighbors, the cell's original value must be restored (backtracking) so it can be used in other potential paths starting from different cells."
+            },
+            {
+                id: "longest_repeating_char_replacement",
+                title: "13. Longest Repeating Character Replacement",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/longest-repeating-character-replacement",
+                description: "Given a string `s` and an integer `k`, you can change any character to any other character at most `k` times. Find the length of the longest substring containing the same letter.",
+                constraints: "1 &le; s.length &le; 10^5, 0 &le; k &le; s.length",
+                solution: `class Solution:
+    def characterReplacement(self, s: str, k: int) -> int:
+        counts = {}
+        left = 0
+        max_freq = 0
+        res = 0
+
+        for right in range(len(s)):
+            counts[s[right]] = 1 + counts.get(s[right], 0)
+            max_freq = max(max_freq, counts[s[right]])
+            
+            window_len = right - left + 1
+            if (window_len - max_freq) > k:
+                counts[s[left]] -= 1
+                left += 1
+            
+            res = max(res, right - left + 1)
+        return res`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Sliding Window",
+                analysis: "The key is a sliding window and the condition `window_length - max_frequency <= k`. This checks if the number of 'minority' characters in the window (which need to be replaced) is within the allowed `k`. If it exceeds `k`, the window is invalid and must shrink from the left. A subtle optimization allows us to only track the historical `max_freq`, as the window will only grow if a new, larger `max_freq` is found to satisfy the condition for an even larger window."
+            },
+            {
+                id: "group_anagrams",
+                title: "14. Group Anagrams",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/group-anagrams",
+                description: "Given an array of strings `strs`, group the anagrams together. The order does not matter.",
+                constraints: "1 &le; strs.length &le; 10^4, 0 &le; strs[i].length &le; 100",
+                solution: `from collections import defaultdict
+
+class Solution:
+    def groupAnagrams(self, strs: list[str]) -> list[list[str]]:
+        anagram_map = defaultdict(list)
+        for s in strs:
+            char_counts = [0] * 26
+            for char in s:
+                char_counts[ord(char) - ord('a')] += 1
+            anagram_map[tuple(char_counts)].append(s)
+        return list(anagram_map.values())`,
+                timeComplexity: "O(N * M)",
+                spaceComplexity: "O(N * M)",
+                keyIdea: "Hashing by Character Counts",
+                analysis: "The core idea is to find a canonical representation for each string such that all its anagrams map to the same key. Using a character frequency count (e.g., a tuple of 26 integers) as the key in a hash map is more efficient (O(N*M)) than sorting each string (O(N*M log M)). The tuple is used because lists are not hashable. `defaultdict(list)` simplifies appending strings to their corresponding group."
+            },
+            {
+                id: "top_k_frequent_words",
+                title: "15. Top K Frequent Words",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/top-k-frequent-words",
+                description: "Given `words` and `k`, return the `k` most frequent strings, sorted by frequency (desc) and then lexicographically (asc) for ties.",
+                constraints: "1 &le; words.length &le; 500, 1 &le; k &le; unique words",
+                solution: `from collections import Counter
+
+class Solution:
+    def topKFrequent(self, words: list[str], k: int) -> list[str]:
+        counts = Counter(words)
+        unique_words = list(counts.keys())
+        
+        # Sort by frequency (desc) then by word (asc)
+        unique_words.sort(key=lambda word: (-counts[word], word))
+        
+        return unique_words[:k]`,
+                timeComplexity: "O(N + U log U)",
+                spaceComplexity: "O(U)",
+                keyIdea: "Hash Map (Counter) + Custom Sort",
+                analysis: "First, count word frequencies using a hash map (Counter). Then, sort the unique words. The sorting key is a tuple `(-frequency, word)`. Python's tuple comparison sorts by the first element, then the second for ties. Using a negative frequency achieves descending order for frequency, while the word itself provides ascending lexicographical order for tie-breaking. A heap-based O(N log k) solution also exists but is more complex to implement."
+            },
+            {
+                id: "accounts_merge",
+                title: "16. Accounts Merge",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/accounts-merge",
+                description: "Given a list of accounts (name + emails), merge accounts belonging to the same person if they share a common email. Return merged accounts with sorted emails.",
+                constraints: "1 &le; accounts.length &le; 1000",
+                solution: `from collections import defaultdict
+
+class Solution:
+    def accountsMerge(self, accounts: list[list[str]]) -> list[list[str]]:
+        email_graph = defaultdict(set)
+        email_to_name = {}
+
+        for acc in accounts:
+            name = acc[0]
+            for email in acc[1:]:
+                email_graph[acc[1]].add(email)
+                email_graph[email].add(acc[1])
+                email_to_name[email] = name
+        
+        res, visited = [], set()
+        for email in email_graph:
+            if email not in visited:
+                component = []
+                stack = [email]
+                visited.add(email)
+                while stack:
+                    node = stack.pop()
+                    component.append(node)
+                    for neighbor in email_graph[node]:
+                        if neighbor not in visited:
+                            visited.add(neighbor)
+                            stack.append(neighbor)
+                res.append([email_to_name[email]] + sorted(component))
+        return res`,
+                timeComplexity: "O(A log A)",
+                spaceComplexity: "O(A)",
+                keyIdea: "Graph Traversal (DFS/BFS) or Union-Find",
+                analysis: "This is a connectivity problem. Model emails as nodes in a graph. An edge exists between two emails if they are in the same account. The problem then becomes finding the connected components of this graph. A DFS or BFS can traverse the graph. An adjacency list is built, then traversal is initiated from each unvisited email node to find its entire component (all emails for one person). Finally, the component's emails are sorted as required."
+            },
+            {
+                id: "find_duplicate_number",
+                title: "17. Find the Duplicate Number",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/find-the-duplicate-number",
+                description: "Given an array `nums` of `n+1` integers from `[1, n]`, find the single repeated number. Must not modify `nums` and use O(1) space.",
+                constraints: "n+1 == nums.length, 1 &le; nums[i] &le; n",
+                solution: `class Solution:
+    def findDuplicate(self, nums: list[int]) -> int:
+        tortoise = hare = nums[0]
+        
+        # Phase 1: Find intersection point
+        while True:
+            tortoise = nums[tortoise]
+            hare = nums[nums[hare]]
+            if tortoise == hare:
+                break
+        
+        # Phase 2: Find cycle entrance
+        ptr1 = nums[0]
+        ptr2 = tortoise
+        while ptr1 != ptr2:
+            ptr1 = nums[ptr1]
+            ptr2 = nums[ptr2]
+        
+        return ptr1`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Cycle Detection (Floyd's Tortoise and Hare)",
+                analysis: "The array can be viewed as a linked list where `nums[i]` is a pointer from index `i`. The duplicate number creates a cycle. This problem is equivalent to finding the entrance of the cycle. Floyd's algorithm uses two pointers, a slow 'tortoise' and a fast 'hare', to first find a meeting point within the cycle. Then, by resetting one pointer to the start and moving both one step at a time, their next meeting point is guaranteed to be the cycle's entrance, which is the duplicate number."
+            },
+            {
+                id: "longest_consecutive_sequence",
+                title: "18. Longest Consecutive Sequence",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/longest-consecutive-sequence",
+                description: "Given an unsorted array `nums`, return the length of the longest consecutive elements sequence. Must run in O(n) time.",
+                constraints: "0 &le; nums.length &le; 10^5",
+                solution: `class Solution:
+    def longestConsecutive(self, nums: list[int]) -> int:
+        num_set = set(nums)
+        longest = 0
+        
+        for n in num_set:
+            if (n - 1) not in num_set:
+                length = 1
+                while (n + length) in num_set:
+                    length += 1
+                longest = max(length, longest)
+        return longest`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(n)",
+                keyIdea: "Set for O(1) Lookups",
+                analysis: "An O(n) solution rules out sorting. By converting the array to a set for O(1) lookups, we can iterate through each number. The key optimization is to only start counting a sequence if a number `n` is the true start (i.e., `n-1` is not in the set). This ensures that the inner `while` loop, which extends the sequence, runs a total of O(n) times across all numbers, not O(n^2)."
+            },
+            {
+                id: "contiguous_array",
+                title: "19. Contiguous Array",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/contiguous-array",
+                description: "Given a binary array `nums`, return the maximum length of a contiguous subarray with an equal number of 0s and 1s.",
+                constraints: "1 &le; nums.length &le; 10^5",
+                solution: `class Solution:
+    def findMaxLength(self, nums: list[int]) -> int:
+        count_map = {0: -1}
+        max_len = 0
+        count = 0
+        
+        for i, num in enumerate(nums):
+            count += 1 if num == 1 else -1
+            if count in count_map:
+                max_len = max(max_len, i - count_map[count])
+            else:
+                count_map[count] = i
+        return max_len`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(n)",
+                keyIdea: "Prefix Sum with Hash Map",
+                analysis: "The problem is transformed by treating 0s as -1. It then becomes finding the longest subarray with a sum of 0. We use a hash map to store the first index at which a particular prefix sum `count` occurred. If we encounter the same `count` again at index `i`, the subarray between the previous index and `i` has a sum of 0. We track the maximum such length. The base case `count_map = {0: -1}` handles subarrays that start from index 0."
+            },
+            {
+                id: "subarray_sum_equals_k",
+                title: "20. Subarray Sum Equals K",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/subarray-sum-equals-k",
+                description: "Given an array `nums` and an integer `k`, return the total number of contiguous subarrays whose sum equals `k`.",
+                constraints: "1 &le; nums.length &le; 2 * 10^4, -1000 &le; nums[i] &le; 1000",
+                solution: `from collections import defaultdict
+
+class Solution:
+    def subarraySum(self, nums: list[int], k: int) -> int:
+        prefix_sum_freq = defaultdict(int)
+        prefix_sum_freq[0] = 1
+        count = 0
+        current_sum = 0
+        
+        for num in nums:
+            current_sum += num
+            diff = current_sum - k
+            count += prefix_sum_freq[diff]
+            prefix_sum_freq[current_sum] += 1
+        return count`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(n)",
+                keyIdea: "Prefix Sum with Frequency Map",
+                analysis: "This problem uses a prefix sum approach. The sum of a subarray `nums[j...i]` is `prefix_sum[i] - prefix_sum[j-1]`. We want this to equal `k`, so we look for `prefix_sum[j-1] = prefix_sum[i] - k`. As we iterate, we maintain the current prefix sum and use a hash map to store the frequencies of all previous prefix sums. For each `current_sum`, we add the frequency of `current_sum - k` to our total count."
+            },
+            {
+                id: "sort_colors",
+                title: "21. Sort Colors",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/sort-colors",
+                description: "Given an array `nums` with objects colored red (0), white (1), or blue (2), sort them in-place with the order red, white, blue.",
+                constraints: "n == nums.length, 1 &le; n &le; 300, nums[i] is 0, 1, or 2.",
+                solution: `class Solution:
+    def sortColors(self, nums: list[int]) -> None:
+        low, mid, high = 0, 0, len(nums) - 1
+        
+        while mid <= high:
+            if nums[mid] == 0:
+                nums[low], nums[mid] = nums[mid], nums[low]
+                low += 1
+                mid += 1
+            elif nums[mid] == 1:
+                mid += 1
+            else:
+                nums[mid], nums[high] = nums[high], nums[mid]
+                high -= 1`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Dutch National Flag Algorithm",
+                analysis: "This one-pass, in-place algorithm uses three pointers: `low`, `mid`, and `high`. It partitions the array into three sections: 0s before `low`, 1s between `low` and `mid`, and 2s after `high`. The `mid` pointer iterates through the array, swapping elements into their correct partitions. If `nums[mid]` is 0, it's swapped with `nums[low]`. If it's 2, it's swapped with `nums[high]`. If it's 1, it's already in the right place, and `mid` just moves on."
+            },
+            {
+                id: "k_closest_points",
+                title: "22. K Closest Points to Origin",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/k-closest-points-to-origin",
+                description: "Given an array of `points` and an integer `k`, return the `k` closest points to the origin (0, 0).",
+                constraints: "1 &le; k &le; points.length &le; 10^4",
+                solution: `class Solution:
+    def kClosest(self, points: list[list[int]], k: int) -> list[list[int]]:
+        # Sort based on squared Euclidean distance to avoid sqrt
+        points.sort(key=lambda p: p[0]**2 + p[1]**2)
+        return points[:k]`,
+                timeComplexity: "O(N log N)",
+                spaceComplexity: "O(N) or O(log N)",
+                keyIdea: "Sorting by Distance",
+                analysis: "A straightforward solution is to sort all points based on their distance to the origin and then take the first `k` elements. A key optimization is to sort by the squared Euclidean distance (`x^2 + y^2`) instead of the actual distance. This avoids slower floating-point calculations and gives the same relative order. While an O(N log k) heap solution exists, this O(N log N) sort is simple and often sufficient."
+            },
+            {
+                id: "spiral_matrix",
+                title: "23. Spiral Matrix",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/spiral-matrix",
+                description: "Given an `m x n` matrix, return all elements of the matrix in spiral order.",
+                constraints: "1 &le; m, n &le; 10",
+                solution: `class Solution:
+    def spiralOrder(self, matrix: list[list[int]]) -> list[int]:
+        if not matrix: return []
+        res = []
+        top, bottom = 0, len(matrix) - 1
+        left, right = 0, len(matrix[0]) - 1
+
+        while top <= bottom and left <= right:
+            for c in range(left, right + 1): res.append(matrix[top][c])
+            top += 1
+            for r in range(top, bottom + 1): res.append(matrix[r][right])
+            right -= 1
+            if top <= bottom:
+                for c in range(right, left - 1, -1): res.append(matrix[bottom][c])
+                bottom -= 1
+            if left <= right:
+                for r in range(bottom, top - 1, -1): res.append(matrix[r][left])
+                left += 1
+        return res`,
+                timeComplexity: "O(m * n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Layer-by-Layer Simulation",
+                analysis: "This approach simulates the spiral traversal by peeling off layers of the matrix. Four pointers (`top`, `bottom`, `left`, `right`) define the boundaries of the current layer. The algorithm traverses right, then down, then left, then up, shrinking the boundaries after each traversal. The boundary checks (`if top <= bottom`) are crucial for non-square matrices to prevent double-counting."
+            },
+            {
+                id: "set_matrix_zeroes",
+                title: "24. Set Matrix Zeroes",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/set-matrix-zeroes",
+                description: "Given an `m x n` matrix, if an element is 0, set its entire row and column to 0s. Do this in-place.",
+                constraints: "1 &le; m, n &le; 200",
+                solution: `class Solution:
+    def setZeroes(self, matrix: list[list[int]]) -> None:
+        ROWS, COLS = len(matrix), len(matrix[0])
+        first_row_zero = any(matrix[0][c] == 0 for c in range(COLS))
+        first_col_zero = any(matrix[r][0] == 0 for r in range(ROWS))
+
+        for r in range(1, ROWS):
+            for c in range(1, COLS):
+                if matrix[r][c] == 0:
+                    matrix[r][0] = 0
+                    matrix[0][c] = 0
+        
+        for r in range(1, ROWS):
+            for c in range(1, COLS):
+                if matrix[r][0] == 0 or matrix[0][c] == 0:
+                    matrix[r][c] = 0
+        
+        if first_row_zero:
+            for c in range(COLS): matrix[0][c] = 0
+        if first_col_zero:
+            for r in range(ROWS): matrix[r][0] = 0`,
+                timeComplexity: "O(m * n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "In-place Marking using First Row/Column",
+                analysis: "The key to an O(1) space solution is to use the first row and column of the matrix itself as markers. The first pass determines if the original first row/column contain zeros (stored in booleans) and marks the first row/column based on zeros in the rest of the matrix. The second pass sets the matrix cells to zero based on these marks. The final step zeroes out the actual first row/column if their initial state required it."
+            },
+            {
+                id: "rotate_image",
+                title: "25. Rotate Image",
+                difficulty: "Medium",
+                link: "https://leetcode.com/problems/rotate-image",
+                description: "Given an `n x n` 2D matrix, rotate it by 90 degrees clockwise in-place.",
+                constraints: "1 &le; n &le; 20",
+                solution: `class Solution:
+    def rotate(self, matrix: list[list[int]]) -> None:
+        n = len(matrix)
+        # Transpose
+        for i in range(n):
+            for j in range(i + 1, n):
+                matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+        
+        # Reverse each row
+        for i in range(n):
+            matrix[i].reverse()`,
+                timeComplexity: "O(n^2)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Transpose and Reflect",
+                analysis: "A 90-degree clockwise rotation can be achieved in two steps: first, transpose the matrix (swap `matrix[i][j]` with `matrix[j][i]`), which reflects it across the main diagonal. Second, reverse each row of the transposed matrix. This two-step process correctly moves every element to its rotated position in-place."
+            },
+            {
+                id: "single_number",
+                title: "26. Single Number",
+                difficulty: "Easy",
+                link: "https://leetcode.com/problems/single-number",
+                description: "Given a non-empty array of integers, every element appears twice except for one. Find that single one. Must be linear time and constant space.",
+                constraints: "1 &le; nums.length &le; 3 * 10^4",
+                solution: `class Solution:
+    def singleNumber(self, nums: list[int]) -> int:
+        res = 0
+        for n in nums:
+            res ^= n
+        return res`,
+                timeComplexity: "O(n)",
+                spaceComplexity: "O(1)",
+                keyIdea: "Bitwise XOR",
+                analysis: "This problem is elegantly solved using the properties of the XOR bitwise operator. XORing a number with itself results in 0 (`a ^ a = 0`), and XORing a number with 0 results in the number itself (`a ^ 0 = a`). By XORing all numbers in the array, all the paired elements will cancel each other out, leaving only the single, unpaired number."
+            }
+        ];
+        
+        const navList = document.getElementById('nav-list');
+        const problemsContainer = document.getElementById('problems-container');
+        const overviewPanel = document.getElementById('overview-panel');
+        let complexityChart;
+
+        function displayProblem(problemId) {
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+
+            if (problemId === 'overview') {
+                document.querySelector(`.nav-link[data-id="overview"]`).classList.add('active');
+                overviewPanel.classList.add('active');
+            } else {
+                const problemToShow = document.getElementById(`problem-${problemId}`);
+                if (problemToShow) {
+                    problemToShow.classList.add('active');
+                    document.querySelector(`.nav-link[data-id="${problemId}"]`).classList.add('active');
+                }
+            }
+            document.getElementById('main-content').scrollTop = 0;
+        }
+
+        function setupTabs(problemId) {
+            const problemContainer = document.getElementById(`problem-${problemId}`);
+            const tabButtons = problemContainer.querySelectorAll('.tab-btn');
+            const tabContents = problemContainer.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabName = button.dataset.tab;
+                    
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        if (content.dataset.tabContent === tabName) {
+                            content.classList.add('active');
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.remove('active');
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+        }
+        
+        function copyCode(event) {
+            const button = event.target;
+            const pre = button.nextElementSibling;
+            const code = pre.querySelector('code').innerText;
+
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy Code';
+                }, 2000);
+            }).catch(err => {
+                 const textArea = document.createElement('textarea');
+                 textArea.value = code;
+                 document.body.appendChild(textArea);
+                 textArea.focus();
+                 textArea.select();
+                 try {
+                     document.execCommand('copy');
+                     button.textContent = 'Copied!';
+                     setTimeout(() => { button.textContent = 'Copy Code'; }, 2000);
+                 } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                 }
+                 document.body.removeChild(textArea);
+            });
+        }
+        
+        function renderChart(filteredData) {
+            const ctx = document.getElementById('complexityChart').getContext('2d');
+            
+            const complexityMap = {
+                "O(1)": 1, "O(log N)": 2, "O(L)": 2, "O(N)": 3, "O(N * M)": 3.5, "O(N + U log U)": 4, "O(N log N)": 5, "O(N log K)": 5, "O(A log A)": 5,
+                "O(n)": 3, "O(n^2)": 6, "O(m * n)": 6, "O(sort)": 5, "O(sort) or O(ans)": 5, "O(min(n, m))": 3, "O(N * M * 4^L)": 7, "O(4^N * N)": 7,
+            };
+            
+            const data = {
+                labels: filteredData.map(p => p.title.substring(p.title.indexOf('.') + 2)),
+                datasets: [{
+                    label: 'Time Complexity (Relative Scale)',
+                    data: filteredData.map(p => complexityMap[p.timeComplexity] || 0),
+                    backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            };
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                           display: false
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                            drawBorder: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Lower is Faster',
+                            font: { size: 14 }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 70,
+                             callback: function(value, index, values) {
+                                const label = this.getLabelForValue(value);
+                                return label.length > 25 ? label.substring(0, 25) + '...' : label;
+                            }
+                        },
+                        grid: {
+                            display: false,
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                const originalProblem = filteredData[context.dataIndex];
+                                return `Complexity: ${originalProblem.timeComplexity}`;
+                            }
+                        },
+                        backgroundColor: '#1f2937',
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        padding: 10,
+                        cornerRadius: 6,
+                        displayColors: false,
+                    }
+                }
+            };
+            
+            if (complexityChart) {
+                complexityChart.destroy();
+            }
+            complexityChart = new Chart(ctx, { type: 'bar', data: data, options: options });
+        }
+
+
+        window.onload = () => {
+            const navListContainer = document.getElementById('nav-list');
+            
+            const overviewLink = document.createElement('a');
+            overviewLink.href = '#';
+            overviewLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link active';
+            overviewLink.textContent = '📊 Overview';
+            overviewLink.dataset.id = 'overview';
+            overviewLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                displayProblem('overview');
+            });
+            navListContainer.appendChild(overviewLink);
+
+            problemsData.forEach((problem, index) => {
+                const navLink = document.createElement('a');
+                navLink.href = '#';
+                navLink.className = 'block p-3 text-sm text-gray-600 hover:bg-gray-100 nav-link';
+                navLink.textContent = problem.title;
+                navLink.dataset.id = problem.id;
+
+                navLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    displayProblem(problem.id);
+                });
+                navListContainer.appendChild(navLink);
+
+                const problemEl = document.createElement('div');
+                problemEl.className = 'content-panel';
+                problemEl.id = `problem-${problem.id}`;
+                problemEl.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-3xl font-bold text-gray-800">${problem.title}</h2>
+                        <a href="${problem.link}" target="_blank" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors">View on LeetCode</a>
+                    </div>
+                    <div class="border-b border-gray-200 mb-6">
+                        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                            <button data-tab="problem" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active">Problem</button>
+                            <button data-tab="solution" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Solution</button>
+                            <button data-tab="analysis" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Analysis</button>
+                        </nav>
+                    </div>
+
+                    <div data-tab-content="problem" class="tab-content active space-y-4">
+                        <div class="p-4 bg-white rounded-lg shadow-sm">
+                           <h3 class="font-semibold text-lg mb-2 text-gray-700">Description</h3>
+                           <p class="text-gray-600">${problem.description}</p>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Constraints</h3>
+                            <p class="text-gray-600 font-mono text-sm">${problem.constraints}</p>
+                        </div>
+                    </div>
+                    <div data-tab-content="solution" class="tab-content hidden">
+                        <div class="relative">
+                            <button class="copy-btn absolute top-2 right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded hover:bg-gray-500">Copy Code</button>
+                            <pre class="bg-gray-900 text-white p-4 rounded-lg shadow-sm text-sm overflow-x-auto"><code class="language-python">${problem.solution.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                        </div>
+                    </div>
+                    <div data-tab-content="analysis" class="tab-content hidden space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                             <div class="p-4 bg-white rounded-lg shadow-sm">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-700">Time Complexity</h3>
+                                <p class="text-lg font-mono text-indigo-600">${problem.timeComplexity}</p>
+                             </div>
+                             <div class="p-4 bg-white rounded-lg shadow-sm">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-700">Space Complexity</h3>
+                                <p class="text-lg font-mono text-indigo-600">${problem.spaceComplexity}</p>
+                             </div>
+                              <div class="p-4 bg-white rounded-lg shadow-sm">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-700">Key Idea</h3>
+                                <p class="text-gray-600">${problem.keyIdea}</p>
+                             </div>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow-sm">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-700">Insights</h3>
+                            <p class="text-gray-600 leading-relaxed">${problem.analysis}</p>
+                        </div>
+                    </div>
+                `;
+                problemsContainer.appendChild(problemEl);
+                setupTabs(problem.id);
+            });
+            
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', copyCode);
+            });
+
+            const difficultyFilter = document.getElementById('difficulty-filter');
+            difficultyFilter.addEventListener('change', (e) => {
+                const selectedDifficulty = e.target.value;
+                const filtered = selectedDifficulty === 'all'
+                    ? problemsData
+                    : problemsData.filter(p => p.difficulty === selectedDifficulty);
+                renderChart(filtered);
+            });
+
+            renderChart(problemsData);
+        };
+
+    </script>
+</body>
+</html>
